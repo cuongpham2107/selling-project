@@ -1,0 +1,8 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+@source '../../../../resources/views/**/*';
+@source '../../../../resources/views/livewire/**/*.blade.php';
+@source '../../../../resources/views/components/**/*.blade.php';
+@source '../../../../vendor/wallacemartinss/filament-icon-picker/resources/views/**/*';

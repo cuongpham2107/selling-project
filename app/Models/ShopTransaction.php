@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Models;
+
+use App\Filament\Resources\ShopTransactions\Enums\Status;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+
+class ShopTransaction extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'buyer_id', 'seller_id', 'product_id', 'amount', 'fee',
+        'status', 'chat_id', 'end_time', 'completed_at',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'fee' => 'decimal:2',
+        'end_time' => 'datetime',
+        'completed_at' => 'datetime',
+        'status' => Status::class,
+    ];
+
+    protected $appends = [
+        'transaction_type',
+    ];
+
+    public function getTransactionTypeAttribute(): string
+    {
+        if (! auth()->check()) {
+            return 'Unknown';
+        }
+
+        return $this->buyer_id === auth()->id() ? 'Đơn mua' : 'Đơn bán';
+    }
+
+    public function buyer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'buyer_id');
+    }
+
+    public function seller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'seller_id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(ShopProduct::class, 'product_id');
+    }
+
+    public function chat(): BelongsTo
+    {
+        return $this->belongsTo(Chat::class);
+    }
+
+    public function disputes(): MorphMany
+    {
+        return $this->morphMany(Dispute::class, 'transaction');
+    }
+}

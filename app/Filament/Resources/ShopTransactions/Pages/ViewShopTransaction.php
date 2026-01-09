@@ -1,0 +1,351 @@
+<?php
+
+namespace App\Filament\Resources\ShopTransactions\Pages;
+
+use App\Filament\Resources\ShopTransactions\Enums\Status;
+use App\Filament\Resources\ShopTransactions\ShopTransactionResource;
+use App\Models\ShopTransaction;
+use App\Models\PointTransaction;
+use Filament\Actions\Action;
+use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
+
+class ViewShopTransaction extends ViewRecord
+{
+    protected static string $resource = ShopTransactionResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        $currentUserId = auth()->id();
+        
+        return [
+            // EditAction::make(),
+
+            // SELLER: Confirm order and hold payment (pending → held)
+            Action::make('confirm_order')
+                ->label('Xác nhận đơn hàng')
+                ->color('success')
+                ->icon('heroicon-o-check-circle')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Pending && 
+                    $record->seller_id === $currentUserId
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Xác nhận đơn hàng')
+                ->modalDescription('Bạn có chắc chắn muốn xác nhận đơn hàng này? Tiền sẽ được giữ từ người mua.')
+                ->action(function (ShopTransaction $record, Action $action) {
+                    DB::transaction(function () use ($record) {
+                        $buyerBalance = $record->buyer->balance;
+                        $totalAmount = $record->amount;
+
+                        // Check if buyer has enough balance
+                        if ($buyerBalance->balance < $totalAmount) {
+                            Notification::make()
+                                ->title('Không đủ số dư')
+                                ->body('Người mua không có đủ số dư để thực hiện giao dịch.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // Move from available to held balance
+                        $buyerBalance->decrement('balance', $totalAmount);
+                        $buyerBalance->increment('held_balance', $totalAmount);
+
+                        // Update transaction status
+                        $record->update(['status' => Status::Held]);
+
+                        // Mark product as sold
+                        $record->product->update(['status' => 'sold']);
+
+                        Notification::make()
+                            ->title('Đơn hàng đã được xác nhận')
+                            ->body('Tiền đã được giữ từ người mua. Nội dung sản phẩm đã được hiển thị.')
+                            ->success()
+                            ->send();
+                    });
+                    
+                    // Redirect to refresh and show product stock
+                    $action->redirect(static::getUrl(['record' => $record->id]));
+                }),
+
+            // BUYER: Cancel order (pending → cancelled)
+            Action::make('cancel_order')
+                ->label('Hủy đơn hàng')
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Pending && 
+                    $record->buyer_id === $currentUserId
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Hủy đơn hàng')
+                ->modalDescription('Bạn có chắc chắn muốn hủy đơn hàng này?')
+                ->action(function (ShopTransaction $record) {
+                    // Update transaction status
+                    // Product remains 'active' for other buyers
+                    $record->update([
+                        'status' => Status::Cancelled,
+                        'cancelled_at' => now(),
+                    ]);
+
+                    Notification::make()
+                        ->title('Đơn hàng đã hủy')
+                        ->body('Đơn hàng đã được hủy thành công.')
+                        ->success()
+                        ->send();
+                }),
+
+            // SELLER: Reject order (pending → cancelled)
+            Action::make('reject_order')
+                ->label('Từ chối đơn hàng')
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Pending && 
+                    $record->seller_id === $currentUserId
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Từ chối đơn hàng')
+                ->modalDescription('Bạn có chắc chắn muốn từ chối đơn hàng này?')
+                ->action(function (ShopTransaction $record) {
+                    // Update transaction status
+                    // Product remains 'active' for other buyers
+                    $record->update([
+                        'status' => Status::Cancelled,
+                        'cancelled_at' => now(),
+                    ]);
+
+                    Notification::make()
+                        ->title('Đơn hàng đã từ chối')
+                        ->body('Đơn hàng đã được từ chối.')
+                        ->warning()
+                        ->send();
+                }),
+
+            // BUYER: Complete early (held → completed)
+            Action::make('complete_early')
+                ->label('Hoàn tất sớm')
+                ->color('success')
+                ->icon('heroicon-o-hand-thumb-up')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Held && 
+                    $record->buyer_id === $currentUserId
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Hoàn tất giao dịch')
+                ->modalDescription('Bạn xác nhận đã nhận được hàng và muốn giải phóng tiền cho người bán?')
+                ->action(function (ShopTransaction $record) {
+                    DB::transaction(function () use ($record) {
+                        $buyerBalance = $record->buyer->balance;
+                        $sellerBalance = $record->seller->balance;
+                        $totalAmount = $record->amount;
+                        $fee = $record->fee;
+                        $netAmount = $totalAmount - $fee;
+
+                        // Release from held balance
+                        $buyerBalance->decrement('held_balance', $totalAmount);
+
+                        // Transfer to seller
+                        $sellerBalance->increment('balance', $netAmount);
+
+                        // Update transaction
+                        $record->update([
+                            'status' => Status::Completed,
+                            'completed_at' => now(),
+                        ]);
+
+                        // Award Points to buyer
+                        $points = \App\Models\Transaction::calculatePoints($record->amount);
+                        if ($points > 0) {
+                            $record->buyer->point()->increment('points', $points);
+
+                            PointTransaction::create([
+                                'user_id' => $record->buyer_id,
+                                'amount' => $points,
+                                'type' => 'earn',
+                                'related_id' => $record->id,
+                                'related_type' => ShopTransaction::class,
+                            ]);
+
+                            // Referral reward
+                            $referrer = $record->buyer->referredBy;
+                            if ($referrer) {
+                                $previousCount = \App\Models\Transaction::where('buyer_id', $record->buyer_id)
+                                    ->where('status', 'completed')
+                                    ->count() +
+                                    ShopTransaction::where('buyer_id', $record->buyer_id)
+                                        ->where('status', Status::Completed)
+                                        ->where('id', '!=', $record->id)
+                                        ->count();
+
+                                if ($previousCount === 0) {
+                                    $referrer->point()->increment('points', $points);
+                                    PointTransaction::create([
+                                        'user_id' => $referrer->id,
+                                        'amount' => $points,
+                                        'type' => 'earn',
+                                        'related_id' => $record->id,
+                                        'related_type' => ShopTransaction::class,
+                                        'recipient_id' => $record->buyer_id,
+                                    ]);
+                                } else {
+                                    $recurringPoints = floor($points * 0.1);
+                                    if ($recurringPoints > 0) {
+                                        $referrer->point()->increment('points', $recurringPoints);
+                                        PointTransaction::create([
+                                            'user_id' => $referrer->id,
+                                            'amount' => $recurringPoints,
+                                            'type' => 'earn',
+                                            'related_id' => $record->id,
+                                            'related_type' => ShopTransaction::class,
+                                            'recipient_id' => $record->buyer_id,
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Giao dịch hoàn tất')
+                            ->body('Tiền đã được chuyển cho người bán và điểm thưởng đã được cộng.')
+                            ->success()
+                            ->send();
+                    });
+                }),
+
+            // BUYER: Initiate dispute (held → disputed)
+            Action::make('dispute')
+                ->label('Khiếu nại')
+                ->color('danger')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Held && 
+                    $record->buyer_id === $currentUserId
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Mở khiếu nại')
+                ->modalDescription('Bạn có vấn đề với đơn hàng này? Nhân viên sẽ xem xét và hỗ trợ.')
+                ->action(function (ShopTransaction $record) {
+                    $record->update([
+                        'status' => Status::Disputed,
+                        'disputed_at' => now(),
+                    ]);
+
+                    Notification::make()
+                        ->title('Đã mở khiếu nại')
+                        ->body('Nhân viên sẽ hỗ trợ xử lý trong thời gian sớm nhất.')
+                        ->warning()
+                        ->send();
+                }),
+
+            // SELLER: Request completion (held only, notification action)
+            Action::make('request_completion')
+                ->label('Yêu cầu hoàn tất')
+                ->color('info')
+                ->icon('heroicon-o-bell-alert')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Held && 
+                    $record->seller_id === $currentUserId
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Yêu cầu người mua hoàn tất')
+                ->modalDescription('Gửi thông báo nhắc nhở người mua xác nhận đã nhận hàng.')
+                ->action(function (ShopTransaction $record) {
+                    // TODO: Send notification to buyer
+                    Notification::make()
+                        ->title('Yêu cầu hoàn tất (Người bán nhắc nhở)')
+                        ->body('Hãy kiểm tra lại sản phẩm và xác nhận đã nhận hàng.')
+                        ->warning()
+                        ->actions([
+                            Action::make('view')
+                                ->label('Xem chi tiết')
+                                ->button()
+                                ->url(route('filament.admin.resources.shop-transactions.view', $record->id)),
+                        ])
+                        ->sendToDatabase($record->buyer);
+                }),
+
+            // ADMIN: Resolve dispute - Complete (disputed → completed)
+            Action::make('resolve_complete')
+                ->label('Giải quyết - Hoàn tất')
+                ->color('success')
+                ->icon('heroicon-o-check-badge')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Disputed && 
+                    auth()->user()->hasRole('super_admin')
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Giải quyết khiếu nại')
+                ->modalDescription('Xác nhận giải quyết tranh chấp và hoàn tất giao dịch cho người bán.')
+                ->action(function (ShopTransaction $record) {
+                    DB::transaction(function () use ($record) {
+                        $buyerBalance = $record->buyer->balance;
+                        $sellerBalance = $record->seller->balance;
+                        $totalAmount = $record->amount;
+                        $fee = $record->fee;
+                        $netAmount = $totalAmount - $fee;
+
+                        // Release from held balance
+                        $buyerBalance->decrement('held_balance', $totalAmount);
+
+                        // Transfer to seller
+                        $sellerBalance->increment('balance', $netAmount);
+
+                        // Update transaction
+                        $record->update([
+                            'status' => Status::Completed,
+                            'completed_at' => now(),
+                            'resolved_at' => now(),
+                        ]);
+
+                        Notification::make()
+                            ->title('Tranh chấp đã giải quyết')
+                            ->body('Giao dịch đã hoàn tất, tiền được chuyển cho người bán.')
+                            ->success()
+                            ->send();
+                    });
+                }),
+
+            // ADMIN: Resolve dispute - Refund (disputed → cancelled)
+            Action::make('resolve_refund')
+                ->label('Giải quyết - Hoàn tiền')
+                ->color('warning')
+                ->icon('heroicon-o-arrow-uturn-left')
+                ->visible(fn (ShopTransaction $record) => 
+                    $record->status === Status::Disputed && 
+                    auth()->user()->hasRole('super_admin')
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Giải quyết khiếu nại')
+                ->modalDescription('Xác nhận hoàn tiền cho người mua và hủy giao dịch.')
+                ->action(function (ShopTransaction $record) {
+                    DB::transaction(function () use ($record) {
+                        $buyerBalance = $record->buyer->balance;
+                        $totalAmount = $record->amount;
+
+                        // Refund to buyer
+                        $buyerBalance->decrement('held_balance', $totalAmount);
+                        $buyerBalance->increment('balance', $totalAmount);
+
+                        // Update transaction
+                        $record->update([
+                            'status' => Status::Cancelled,
+                            'cancelled_at' => now(),
+                            'resolved_at' => now(),
+                        ]);
+
+                        // Return product to active status
+                        $record->product->update(['status' => 'active']);
+
+                        Notification::make()
+                            ->title('Tranh chấp đã giải quyết')
+                            ->body('Đã hoàn tiền cho người mua và hủy giao dịch.')
+                            ->success()
+                            ->send();
+                    });
+                }),
+        ];
+    }
+}
