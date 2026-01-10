@@ -5,7 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $bank_name
+ * @property string $account_holder_name
+ * @property string $account_number
+ * @property bool $is_default
+ */
 class UserBankAccount extends Model
 {
     use HasFactory;

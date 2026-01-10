@@ -16,20 +16,30 @@ class FeeTiersTable
         return $table
             ->columns([
                 TextColumn::make('min_amount')
-                    ->label('Tối thiểu')
-                    ->money('VND'),
-                TextColumn::make('max_amount')
-                    ->label('Tối đa')
-                    ->money('VND'),
-                TextColumn::make('fee')
-                    ->label('Phí')
+                    ->label('Số tiền tối thiểu')
+                    ->money('VND')
                     ->sortable(),
-                TextColumn::make('type')
-                    ->label('Loại')
-                    ->badge(),
+                TextColumn::make('max_amount')
+                    ->label('Số tiền tối đa')
+                    ->money('VND')
+                    ->sortable()
+                    ->placeholder('Không giới hạn'),
+                TextColumn::make('fee')
+                    ->label('Mức phí')
+                    ->money('VND')
+                    ->sortable(),
+                TextColumn::make('amount_range')
+                    ->label('Khoảng tiền')
+                    ->state(function ($record) {
+                        $min = number_format($record->min_amount, 0, ',', '.');
+                        $max = $record->max_amount 
+                            ? number_format($record->max_amount, 0, ',', '.') 
+                            : '∞';
+                        return "{$min} - {$max} VNĐ";
+                    })
+                    ->searchable(false),
             ])
             ->recordActions([
-                ViewAction::make(),
                 EditAction::make(),
             ])
             ->bulkActions([
@@ -37,6 +47,7 @@ class FeeTiersTable
                     DeleteBulkAction::make(),
                 ]),
             ])
+            ->defaultSort('min_amount', 'asc')
             ->defaultPaginationPageOption(25);
     }
 }

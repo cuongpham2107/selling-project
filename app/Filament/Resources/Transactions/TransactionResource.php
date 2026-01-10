@@ -21,7 +21,7 @@ class TransactionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài chính';
+    protected static string|UnitEnum|null $navigationGroup = 'Mua bán';
 
     protected static ?string $navigationLabel = 'Giao dịch trung gian';
 

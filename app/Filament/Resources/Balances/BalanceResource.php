@@ -24,7 +24,7 @@ class BalanceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài chính';
+    protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài khoản';
 
     protected static ?string $navigationLabel = 'Số dư ví';
 

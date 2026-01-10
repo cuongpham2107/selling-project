@@ -21,9 +21,10 @@ class PointTransactionsTable
                     ->searchable(),
                 TextColumn::make('amount')
                     ->label('Số điểm')
-                    ->sortable(),
+                    ->alignCenter(),
                 TextColumn::make('type')
                     ->label('Loại')
+                    ->alignCenter()
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'earn' => 'Nâng',
@@ -42,6 +43,7 @@ class PointTransactionsTable
                 TextColumn::make('created_at')
                     ->label('Thời gian')
                     ->dateTime('d/m/Y H:i')
+                    ->alignCenter()
                     ->sortable(),
             ])
             ->actions([

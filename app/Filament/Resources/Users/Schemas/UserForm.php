@@ -101,6 +101,7 @@ class UserForm
                                         'approved' => 'Đã duyệt',
                                         'rejected' => 'Từ chối',
                                     ])
+                                    ->columnSpanFull()
                                     ->default('pending')
                                     ->disabled(fn () => ! auth()->user()->hasRole(config('filament-shield.super_admin.name'))),
                                 FileUpload::make('kyc_documents')

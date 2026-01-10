@@ -19,7 +19,7 @@ class ShopProductForm
             ->components([
                 Section::make('Thông tin sản phẩm')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
                                 TextInput::make('name')
                                     ->label('Tên sản phẩm')
@@ -55,7 +55,7 @@ class ShopProductForm
                                 ]
                                 : []
                         ),
-                    ]),
+                    ])->columnSpanFull(),
                 ...(
                     !auth()->user()?->hasRole('panel_user')
                         ? [

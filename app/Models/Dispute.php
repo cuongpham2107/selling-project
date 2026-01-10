@@ -7,13 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $transaction_id
+ * @property string $transaction_type
+ * @property int $initiator_id
+ * @property string $reason
+ * @property string $status
+ * @property int|null $resolved_by
+ * @property string|null $resolution
+ * @property \Illuminate\Support\Carbon|null $resolved_at
+ * @property-read mixed $transaction
+ * @property-read \App\Models\User $initiator
+ * @property-read \App\Models\User|null $resolver
+ */
 class Dispute extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'transaction_id', 'transaction_type', 'initiator_id', 'reason', 
-        'status', 'resolved_by', 'resolution', 'resolved_at'
+        'transaction_id', 'transaction_type', 'initiator_id', 'reason',
+        'status', 'resolved_by', 'resolution', 'resolved_at',
     ];
 
     protected $casts = [

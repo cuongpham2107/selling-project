@@ -9,9 +9,26 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * BalanceTransaction Model
- * 
+ *
  * Tracks all balance changes for users with polymorphic relationship to source transactions.
  * Used to display complete transaction history.
+ */
+
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $type
+ * @property float $amount
+ * @property float $balance_after
+ * @property float $held_balance_after
+ * @property int|null $source_id
+ * @property string|null $source_type
+ * @property int|null $related_user_id
+ * @property array|null $metadata
+ * @property-read \App\Models\User $user
+ * @property-read mixed $type_label
  */
 class BalanceTransaction extends Model
 {
@@ -96,7 +113,8 @@ class BalanceTransaction extends Model
     public function getAmountFormattedAttribute(): string
     {
         $sign = $this->amount >= 0 ? '+' : '';
-        return $sign . number_format((float) $this->amount, 0, ',', '.') . ' VNĐ';
+
+        return $sign.number_format((float) $this->amount, 0, ',', '.').' VNĐ';
     }
 
     /**

@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property string $name
+ * @property string|null $description
+ * @property string|null $image_url
+ * @property float $price
+ * @property int $stock
+ * @property string $status
+ * @property-read \App\Models\User $seller
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ShopCategory[] $categories
+ */
 class ShopProduct extends Model
 {
     use HasFactory;

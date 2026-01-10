@@ -24,6 +24,8 @@ class ChatBox extends Component implements HasActions, HasForms
 
     public $search = '';
 
+    public $messageSearch = '';
+
     public $selectedChat = null;
 
     public $showNewChatModal = false;
@@ -67,6 +69,7 @@ class ChatBox extends Component implements HasActions, HasForms
             ->with(['participants', 'messages' => function ($query) {
                 $query->latest()->limit(1);
             }])
+            ->latest('updated_at')
             ->get();
 
         // 3. Merge & Sort by last message time or update time
@@ -89,11 +92,17 @@ class ChatBox extends Component implements HasActions, HasForms
         }
 
         // Lấy 50 tin nhắn mới nhất, sau đó sắp xếp theo thứ tự cũ -> mới
-        return $this->selectedChat->messages()
+        $query = $this->selectedChat->messages()
             ->with('sender')
             ->latest()
-            ->limit(50)
-            ->get()
+            ->limit(50);
+
+        // Filter by message search if provided
+        if ($this->messageSearch) {
+            $query->where('content', 'like', '%' . $this->messageSearch . '%');
+        }
+
+        return $query->get()
             ->sortBy('id')
             ->values(); // Reset keys để tránh lộn xộn thứ tự
     }
@@ -217,6 +226,11 @@ class ChatBox extends Component implements HasActions, HasForms
         return $query->limit(20)->get();
     }
 
+    public function selectUser(int $userId): void
+    {
+        $this->selectedUserId = $userId;
+    }
+
     public function createNewChat(): void
     {
         $this->validate([
@@ -237,7 +251,7 @@ class ChatBox extends Component implements HasActions, HasForms
             // If chat exists, just select it
             $this->selectedChat = $existingChat;
             $this->closeNewChatModal();
-            $this->dispatch('chat-selected');
+            $this->dispatch('chat-selected', chatId: $existingChat->id);
 
             return;
         }
@@ -248,11 +262,11 @@ class ChatBox extends Component implements HasActions, HasForms
         // Add both users as participants
         $chat->participants()->attach([Auth::id(), $this->selectedUserId]);
 
-        // Select the new chat
-        $this->selectedChat = $chat->load(['participants', 'messages']);
-
-        $this->closeNewChatModal();
-        $this->dispatch('chat-selected');
+    // Select the new chat
+    $this->selectedChat = $chat->load(['participants', 'messages']);
+    $this->closeNewChatModal();
+    // Notify frontend with the new chat id so Alpine subscribes to the correct channel
+    $this->dispatch('chat-selected', chatId: $chat->id);
     }
 
     public function render()

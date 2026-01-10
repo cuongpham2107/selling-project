@@ -5,7 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int $points    
+ */
 class Point extends Model
 {
     use HasFactory;

@@ -4,12 +4,14 @@ namespace App\Filament\Resources\ShopTransactions\Pages;
 
 use App\Filament\Resources\ShopTransactions\Enums\Status;
 use App\Filament\Resources\ShopTransactions\ShopTransactionResource;
-use App\Models\ShopTransaction;
+use App\Models\FeeTier;
+use App\Models\PointTier;
 use App\Models\PointTransaction;
+use App\Models\ShopTransaction;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\DB;
-use Filament\Notifications\Notification;
 
 class ViewShopTransaction extends ViewRecord
 {
@@ -18,7 +20,7 @@ class ViewShopTransaction extends ViewRecord
     protected function getHeaderActions(): array
     {
         $currentUserId = auth()->id();
-        
+
         return [
             // EditAction::make(),
 
@@ -27,8 +29,7 @@ class ViewShopTransaction extends ViewRecord
                 ->label('Xác nhận đơn hàng')
                 ->color('success')
                 ->icon('heroicon-o-check-circle')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Pending && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Pending &&
                     $record->seller_id === $currentUserId
                 )
                 ->requiresConfirmation()
@@ -46,26 +47,33 @@ class ViewShopTransaction extends ViewRecord
                                 ->body('Người mua không có đủ số dư để thực hiện giao dịch.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
+
+                        // Calculate and save fee for shop transaction (1% of amount)
+                        $fee = FeeTier::calculateShopFee((float) $totalAmount);
 
                         // Move from available to held balance
                         $buyerBalance->decrement('balance', $totalAmount);
                         $buyerBalance->increment('held_balance', $totalAmount);
 
-                        // Update transaction status
-                        $record->update(['status' => Status::Held]);
+                        // Update transaction status and fee
+                        $record->update([
+                            'status' => Status::Held,
+                            'fee' => $fee,
+                        ]);
 
                         // Mark product as sold
                         $record->product->update(['status' => 'sold']);
 
                         Notification::make()
                             ->title('Đơn hàng đã được xác nhận')
-                            ->body('Tiền đã được giữ từ người mua. Nội dung sản phẩm đã được hiển thị.')
+                            ->body('Tiền đã được giữ từ người mua. Phí giao dịch: '.number_format($fee, 0, ',', '.').' VNĐ (1%)')
                             ->success()
                             ->send();
                     });
-                    
+
                     // Redirect to refresh and show product stock
                     $action->redirect(static::getUrl(['record' => $record->id]));
                 }),
@@ -75,8 +83,7 @@ class ViewShopTransaction extends ViewRecord
                 ->label('Hủy đơn hàng')
                 ->color('danger')
                 ->icon('heroicon-o-x-circle')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Pending && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Pending &&
                     $record->buyer_id === $currentUserId
                 )
                 ->requiresConfirmation()
@@ -102,8 +109,7 @@ class ViewShopTransaction extends ViewRecord
                 ->label('Từ chối đơn hàng')
                 ->color('danger')
                 ->icon('heroicon-o-x-circle')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Pending && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Pending &&
                     $record->seller_id === $currentUserId
                 )
                 ->requiresConfirmation()
@@ -129,8 +135,7 @@ class ViewShopTransaction extends ViewRecord
                 ->label('Hoàn tất sớm')
                 ->color('success')
                 ->icon('heroicon-o-hand-thumb-up')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Held && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Held &&
                     $record->buyer_id === $currentUserId
                 )
                 ->requiresConfirmation()
@@ -141,7 +146,9 @@ class ViewShopTransaction extends ViewRecord
                         $buyerBalance = $record->buyer->balance;
                         $sellerBalance = $record->seller->balance;
                         $totalAmount = $record->amount;
-                        $fee = $record->fee;
+
+                        // Calculate fee for shop transaction (1% of amount)
+                        $fee = FeeTier::calculateShopFee((float) $totalAmount);
                         $netAmount = $totalAmount - $fee;
 
                         // Release from held balance
@@ -150,14 +157,15 @@ class ViewShopTransaction extends ViewRecord
                         // Transfer to seller
                         $sellerBalance->increment('balance', $netAmount);
 
-                        // Update transaction
+                        // Update transaction with calculated fee
                         $record->update([
                             'status' => Status::Completed,
                             'completed_at' => now(),
+                            'fee' => $fee,
                         ]);
 
                         // Award Points to buyer
-                        $points = \App\Models\Transaction::calculatePoints($record->amount);
+                        $points = PointTier::calculatePoints((float) $record->amount);
                         if ($points > 0) {
                             $record->buyer->point()->increment('points', $points);
 
@@ -220,8 +228,7 @@ class ViewShopTransaction extends ViewRecord
                 ->label('Khiếu nại')
                 ->color('danger')
                 ->icon('heroicon-o-exclamation-triangle')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Held && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Held &&
                     $record->buyer_id === $currentUserId
                 )
                 ->requiresConfirmation()
@@ -240,13 +247,12 @@ class ViewShopTransaction extends ViewRecord
                         ->send();
                 }),
 
-            // SELLER: Request completion (held only, notification action)
+            // NGƯỜI BÁN: Hoàn thành yêu cầu (chỉ giữ, hành động thông báo)
             Action::make('request_completion')
                 ->label('Yêu cầu hoàn tất')
                 ->color('info')
                 ->icon('heroicon-o-bell-alert')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Held && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Held &&
                     $record->seller_id === $currentUserId
                 )
                 ->requiresConfirmation()
@@ -267,13 +273,12 @@ class ViewShopTransaction extends ViewRecord
                         ->sendToDatabase($record->buyer);
                 }),
 
-            // ADMIN: Resolve dispute - Complete (disputed → completed)
+            // ADMIN: Giải quyết tranh chấp - Hoàn tất (disputed → completed)
             Action::make('resolve_complete')
                 ->label('Giải quyết - Hoàn tất')
                 ->color('success')
                 ->icon('heroicon-o-check-badge')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Disputed && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Disputed &&
                     auth()->user()->hasRole('super_admin')
                 )
                 ->requiresConfirmation()
@@ -284,20 +289,23 @@ class ViewShopTransaction extends ViewRecord
                         $buyerBalance = $record->buyer->balance;
                         $sellerBalance = $record->seller->balance;
                         $totalAmount = $record->amount;
-                        $fee = $record->fee;
+
+                        // Tính phí giao dịch (theo cấu hình gian hàng)
+                        $fee = FeeTier::calculateShopFee((float) $totalAmount);
                         $netAmount = $totalAmount - $fee;
 
-                        // Release from held balance
+                        // Giải phóng số tiền từ held_balance của người mua
                         $buyerBalance->decrement('held_balance', $totalAmount);
 
-                        // Transfer to seller
+                        // Chuyển tiền sau khi trừ phí cho người bán
                         $sellerBalance->increment('balance', $netAmount);
 
-                        // Update transaction
+                        // Cập nhật trạng thái giao dịch và lưu phí
                         $record->update([
                             'status' => Status::Completed,
                             'completed_at' => now(),
                             'resolved_at' => now(),
+                            'fee' => $fee,
                         ]);
 
                         Notification::make()
@@ -308,13 +316,12 @@ class ViewShopTransaction extends ViewRecord
                     });
                 }),
 
-            // ADMIN: Resolve dispute - Refund (disputed → cancelled)
+            // ADMIN: Giải quyết tranh chấp - Hoàn tiền (tranh chấp → hủy)
             Action::make('resolve_refund')
                 ->label('Giải quyết - Hoàn tiền')
                 ->color('warning')
                 ->icon('heroicon-o-arrow-uturn-left')
-                ->visible(fn (ShopTransaction $record) => 
-                    $record->status === Status::Disputed && 
+                ->visible(fn (ShopTransaction $record) => $record->status === Status::Disputed &&
                     auth()->user()->hasRole('super_admin')
                 )
                 ->requiresConfirmation()
@@ -325,22 +332,22 @@ class ViewShopTransaction extends ViewRecord
                         $buyerBalance = $record->buyer->balance;
                         $totalAmount = $record->amount;
 
-                        // Refund to buyer
+                        // Hoàn tiền cho người mua
                         $buyerBalance->decrement('held_balance', $totalAmount);
-                        $buyerBalance->increment('balance', $totalAmount);
+                        // Tính phí cho giao dịch gian hàng (1% của tổng tiền)
 
                         // Update transaction
                         $record->update([
                             'status' => Status::Cancelled,
-                            'cancelled_at' => now(),
+                            // Giải phóng số tiền từ held_balance
                             'resolved_at' => now(),
                         ]);
 
-                        // Return product to active status
+                        // Chuyển tiền cho người bán
                         $record->product->update(['status' => 'active']);
 
                         Notification::make()
-                            ->title('Tranh chấp đã giải quyết')
+                        // Cập nhật giao dịch với phí đã tính
                             ->body('Đã hoàn tiền cho người mua và hủy giao dịch.')
                             ->success()
                             ->send();

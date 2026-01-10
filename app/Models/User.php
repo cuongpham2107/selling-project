@@ -11,7 +11,17 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $chat_id
+ * @property int $sender_id
+ * @property string $content
+ * @property string|null $image_url
+ * @property int|null $product_id
+ * @property \Illuminate\Support\Carbon|null $read_at
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */

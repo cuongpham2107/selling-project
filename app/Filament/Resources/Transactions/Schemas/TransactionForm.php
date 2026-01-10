@@ -10,6 +10,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Support\RawJs;
+use Filament\Schemas\Components\Icon;
 
 class TransactionForm
 {
@@ -24,12 +27,13 @@ class TransactionForm
                             ChatField::make('chat_id')
                                 ->label('Phòng chat hỗ trợ'),
                         ])
-                        ->columnSpan(2),
+                        ->columnSpan(3),
 
                     // Phần 2: Chiếm 1 cột (Thông tin & Trạng thái) - Xếp hàng dọc
                     Grid::make(1)
                         ->schema([
                             Section::make('Thông tin giao dịch')
+                                ->columns(2)
                                 ->schema([
                                     Select::make('buyer_id')
                                         ->label('Người mua')
@@ -51,24 +55,33 @@ class TransactionForm
                                 ]),
 
                             Section::make('Tài chính & Trạng thái')
+                                ->columns(6)
                                 ->schema([
                                     TextInput::make('amount')
                                         ->label('Số tiền')
                                         ->numeric()
-                                        ->prefix('VNĐ')
+                                        ->mask(RawJs::make('$money($input)'))
+                                        ->suffix('VNĐ')
                                         ->disabled()
-                                        ->required(),
-                                    TextInput::make('duration')
-                                        ->label('Thời gian (giờ)')
-                                        ->numeric()
-                                        ->disabled()
-                                        ->required(),
+                                        ->required()
+                                        ->columnSpan(3),
                                     TextInput::make('fee')
                                         ->label('Phí giao dịch')
+                                        ->mask(RawJs::make('$money($input)'))
                                         ->numeric()
-                                        ->prefix('VNĐ')
+                                        ->suffix('VNĐ')
                                         ->disabled()
-                                        ->required(),
+                                        ->required()
+                                        ->columnSpan(3),
+                                    TextInput::make('duration')
+                                        ->label('Thời gian')
+                                        ->numeric()
+                                        ->disabled()
+                                        ->prefixIcon(Heroicon::Clock)
+                                        ->suffix('Giờ')
+                                        ->required()
+                                        ->columnSpan(3),
+                                   
                                     Select::make('status')
                                         ->label('Trạng thái')
                                         ->options([
@@ -83,20 +96,32 @@ class TransactionForm
                                         ])
                                         ->default('pending')
                                         ->disabled()
-                                        ->required(),
+                                        ->required()
+                                        ->columnSpan(3),
                                     DateTimePicker::make('confirmed_at')
                                         ->disabled()
-                                        ->label('Xác nhận lúc'),
+                                        ->label('Xác nhận lúc')
+                                        // ->prefixIcon(Heroicon::CalendarDays)
+                                        ->displayFormat('d/m/Y H:i')
+                                        ->seconds(false)
+                                        ->columnSpan(2),
                                     DateTimePicker::make('end_time')
                                         ->disabled()
-                                        ->label('Thời hạn kết thúc'),
+                                        ->label('Thời hạn kết thúc')
+                                        ->displayFormat('d/m/Y H:i')
+                                        ->seconds(false)
+                                        ->columnSpan(2),
                                     DateTimePicker::make('completed_at')
                                         ->disabled()
-                                        ->label('Hoàn thành lúc'),
+                                        ->label('Hoàn thành lúc')
+                                        // ->prefixIcon(Heroicon::CalendarDays)
+                                        ->displayFormat('d/m/Y H:i')
+                                        ->seconds(false)
+                                        ->columnSpan(2),
                                 ]),
                         ])
-                        ->columnSpan(1),
-                ])->columns(3)->columnSpanFull(),
+                        ->columnSpan(2),
+                ])->columns(5)->columnSpanFull(),
             ]);
     }
 }

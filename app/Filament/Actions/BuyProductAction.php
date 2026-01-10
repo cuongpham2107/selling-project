@@ -36,9 +36,10 @@ class BuyProductAction
                 }
 
                 // Ensure buyer has a balance record
-                if (!$buyer->balance) {
+                if ($buyer->balance && $buyer->balance->balance < $record->price) {
                     Notification::make()
-                        ->title('Tài khoản của bạn không đủ. Vui lòng nạp tiền vào tài khoản để thực hiện giao dịch.')
+                        ->title('Lỗi số dư')
+                        ->body('Tài khoản của bạn không đủ. Vui lòng nạp tiền vào tài khoản để thực hiện giao dịch.')
                         ->danger()
                         ->send();
                     return;

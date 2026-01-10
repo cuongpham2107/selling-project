@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\FeeTiers\Schemas;
 
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -13,30 +12,30 @@ class FeeTierForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Cấu hình phí giao dịch')
-                ->description('Thiết lập các ngưỡng số tiền và mức phí tương ứng cho từng loại giao dịch.')
+            Section::make('Cấu hình phí giao dịch trung gian')
+                ->description('Thiết lập các ngưỡng số tiền và mức phí tương ứng cho giao dịch trung gian. Phí gian hàng (1%) được cấu hình trong config/transaction.php')
                 ->schema([
-                    Grid::make(2)
+                    Grid::make(3)
                         ->schema([
                             TextInput::make('min_amount')
                                 ->label('Số tiền tối thiểu')
                                 ->numeric()
-                                ->prefix('VNĐ'),
+                                ->required()
+                                ->suffix('VNĐ')
+                                ->minValue(0),
                             TextInput::make('max_amount')
                                 ->label('Số tiền tối đa')
                                 ->numeric()
-                                ->prefix('VNĐ'),
+                                ->suffix('VNĐ')
+                                ->helperText('Để trống nếu không giới hạn trên')
+                                ->minValue(0),
                             TextInput::make('fee')
-                                ->label('Mức phí')
+                                ->label('Mức phí cố định')
                                 ->numeric()
-                                ->required(),
-                            Select::make('type')
-                                ->label('Loại giao dịch')
-                                ->options([
-                                    'middle' => 'Trung gian',
-                                    'shop' => 'Gian hàng',
-                                ])
-                                ->required(),
+                                ->required()
+                                ->suffix('VNĐ')
+                                ->minValue(0)
+                                ->helperText('Phí cố định cho khoảng tiền này'),
                         ]),
                 ]),
         ]);

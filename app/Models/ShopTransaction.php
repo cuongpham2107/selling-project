@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $buyer_id
+ * @property int $seller_id
+ * @property int $product_id
+ * @property float $amount
+ * @property float $fee
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $chat_id
+ * @property \Illuminate\Support\Carbon|null $end_time
+ * @property \Illuminate\Support\Carbon|null $completed_at
+ */
 class ShopTransaction extends Model
 {
     use HasFactory;

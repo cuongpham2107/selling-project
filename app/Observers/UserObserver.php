@@ -5,7 +5,7 @@ namespace App\Observers;
 use App\Models\Balance;
 use App\Models\Point;
 use App\Models\User;
-
+use Illuminate\Support\Str;
 class UserObserver
 {
     /**
@@ -24,6 +24,16 @@ class UserObserver
             ['user_id' => $user->id],
             ['points' => 0]
         );
+
+        // Tạo 1 mã referral_code ngẫu nhiên
+        $referral_code = strtoupper(Str::random(10));
+        $existing = User::where('referral_code', $referral_code)->first();
+        while ($existing) {
+            $referral_code = strtoupper(Str::random(10));
+            $existing = User::where('referral_code', $referral_code)->first();
+        }
+        $user->referral_code = $referral_code;
+        $user->save();
     }
 
     /**

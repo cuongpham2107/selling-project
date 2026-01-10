@@ -6,7 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property float $amount
+ * @property string $type
+ * @property int $related_id
+ * @property string $related_type
+ * @property int $recipient_id
+ * @property int $sender_id
+ */
 class PointTransaction extends Model
 {
     use HasFactory;

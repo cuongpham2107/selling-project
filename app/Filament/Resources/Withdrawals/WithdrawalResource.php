@@ -25,11 +25,13 @@ class WithdrawalResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-circle';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài chính';
+    protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài khoản';
 
     protected static ?string $navigationLabel = 'Rút tiền';
 
     protected static ?string $pluralLabel = 'Lịch sử rút tiền';
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

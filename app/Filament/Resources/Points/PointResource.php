@@ -18,7 +18,7 @@ class PointResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-sparkles';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài chính';
+    protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài khoản';
 
     protected static ?string $navigationLabel = 'Ví Point';
 

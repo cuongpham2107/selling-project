@@ -1,43 +1,60 @@
 <?php
-
 namespace App\Filament\Auth\Pages;
 
-use Filament\Auth\Pages\Register as BaseRegister;
-use Filament\Auth\Events\Registered as FilamentRegistered;
-use Spatie\Permission\Models\Role;
-
-/**
- * Extend Filament's Register page to hook into the registration lifecycle.
- *
- * Note: the vendor page calls `$this->callHook('beforeRegister')` before
- * the user model is created. To assign roles using Spatie\Permission we need
- * the user model instance, so we implement `afterRegister()` which receives
- * the created model context from the page (available as `$this->form->getModel()`
- * after saveRelationships). If you absolutely need to mutate data before
- * creation, use `beforeRegister()` to modify `$this->data`.
- */
-class Register extends BaseRegister
+use Filament\Auth\Pages\Register as BaseAuth;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Component;
+use Filament\Forms\Components\TextInput;
+use Closure;
+use App\Models\User;
+class Register extends BaseAuth
 {
-    /**
-     * Called by the parent page after the user has been created and relationships saved.
-     */
-    protected function afterRegister(): void
+    protected static string $layout = 'filament.components.layout.simple';
+
+    public function form(Schema $schema): Schema
     {
-        // Prefer assigning roles using an event listener for Filament\Auth\Events\Registered.
-        // See App\Listeners\AssignDefaultRole for an example implementation.
+        return $schema
+            ->components([
+                $this->getNameFormComponent(),
+                $this->getEmailFormComponent(),
+                $this->getReferralCodeFormComponent(),
+                $this->getPasswordFormComponent(),
+                $this->getPasswordConfirmationFormComponent(),
+              
+            ]);
+    }
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeRegister(array $data): array
+    {
+        $data['referral_code'] = strtoupper(trim($data['referral_code'] ?? ''));
+        return $data;
     }
 
-    /**
-     * Optional: if you really want to modify the raw form data before creation,
-     * implement beforeRegister and change `$this->data` or `$this->form` state.
-     */
-    /*
-    protected function beforeRegister(): void
+
+
+
+    protected function getReferralCodeFormComponent(): Component
     {
-        // Example: add a default value into the input data
-        $data = $this->form->getState();
-        $data['some_field'] = 'default';
-        $this->form->fill($data);
+        return TextInput::make('referral_code')
+            ->label('Mã giới thiệu')
+            ->afterLabel('Nhập mã giới thiệu của bạn (Nếu có)')
+            ->live()
+            ->rules([
+                 fn (): Closure => function (string $attribute, $value, Closure $fail) {
+                    // Nếu không nhập mã giới thiệu thì bỏ qua validation
+                    if (empty($value)) {
+                        return;
+                    }
+                    
+                    $check_exists = User::where('referral_code', $value)->exists();
+                    if (!$check_exists) {
+                        $fail('Mã giới thiệu không hợp lệ.');
+                    }
+                },
+            ])
+            ->maxLength(255);
     }
-    */
 }

@@ -3,11 +3,16 @@
 namespace App\Filament\Resources\Transactions\Pages;
 
 use App\Filament\Resources\Transactions\TransactionResource;
+use App\Models\Dispute;
+use App\Models\PointTier;
 use App\Models\PointTransaction;
 use App\Models\Transaction;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ViewTransaction extends ViewRecord
@@ -17,7 +22,7 @@ class ViewTransaction extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make(),
+            // EditAction::make(),
 
             // Partner confirms the transaction request
             Action::make('confirm')
@@ -29,7 +34,7 @@ class ViewTransaction extends ViewRecord
                 ->action(function (Transaction $record) {
                     DB::transaction(function () use ($record) {
                         $buyerBalance = $record->buyer->balance;
-                        
+
                         // Calculate fee (Buyer pays)
                         $fee = $record->calculateTotalFee();
                         $totalToHold = $record->amount + $fee;
@@ -37,7 +42,7 @@ class ViewTransaction extends ViewRecord
                         if ($buyerBalance->balance < $totalToHold) {
                             \Filament\Notifications\Notification::make()
                                 ->title('Số dư không đủ')
-                                ->body("Số dư người mua không đủ. Cần " . number_format($totalToHold) . " VNĐ (bao gồm phí).")
+                                ->body('Số dư người mua không đủ. Cần '.number_format($totalToHold).' VNĐ (bao gồm phí).')
                                 ->danger()
                                 ->send();
 
@@ -63,7 +68,7 @@ class ViewTransaction extends ViewRecord
                     });
                 }),
 
-            // Seller marks the goods as sent
+           // Người bán đánh dấu hàng hóa là đã gửi
             Action::make('seller_sent')
                 ->label('Đã gửi hàng')
                 ->color('warning')
@@ -80,7 +85,7 @@ class ViewTransaction extends ViewRecord
                         ->send();
                 }),
 
-            // Buyer marks the goods as received and releases payment
+            // Người mua đánh dấu hàng hóa là đã nhận và thanh toán
             Action::make('buyer_received')
                 ->label('Đã nhận hàng')
                 ->color('success')
@@ -107,8 +112,8 @@ class ViewTransaction extends ViewRecord
                             'completed_at' => now(),
                         ]);
 
-                        // Award Points to buyer
-                        $points = Transaction::calculatePoints($record->amount);
+                        // Điểm thưởng cho người mua
+                        $points = PointTier::calculatePoints((float) $record->amount);
                         if ($points > 0) {
                             $record->buyer->point()->increment('points', $points);
 
@@ -120,10 +125,10 @@ class ViewTransaction extends ViewRecord
                                 'related_type' => Transaction::class,
                             ]);
 
-                            // Referral reward (100% matched for first transaction)
+                            // Phần thưởng giới thiệu (khớp 100% cho giao dịch đầu tiên)
                             $referrer = $record->buyer->referredBy;
                             if ($referrer) {
-                                // Check if this is the first completed transaction
+                                // Kiểm tra xem đây có phải là giao dịch hoàn thành đầu tiên không
                                 $previousCount = Transaction::where('buyer_id', $record->buyer_id)
                                     ->where('status', 'completed')
                                     ->where('id', '!=', $record->id)
@@ -140,7 +145,7 @@ class ViewTransaction extends ViewRecord
                                         'recipient_id' => $record->buyer_id, // Who they got it from
                                     ]);
                                 } else {
-                                    // Recurring referral reward: 10% of points
+                                    // Phần thưởng giới thiệu định kỳ: 10% điểm
                                     $recurringPoints = floor($points * 0.1);
                                     if ($recurringPoints > 0) {
                                         $referrer->point()->increment('points', $recurringPoints);
@@ -171,15 +176,39 @@ class ViewTransaction extends ViewRecord
                 ->color('danger')
                 ->icon('heroicon-o-exclamation-triangle')
                 ->visible(fn (Transaction $record) => in_array($record->status, ['confirmed', 'seller_sent', 'buyer_received']))
-                ->requiresConfirmation()
-                ->action(function (Transaction $record) {
-                    $record->update(['status' => 'disputed']);
+                ->form([
+                    Textarea::make('reason')
+                        ->label('Lý do khiếu nại')
+                        ->placeholder('Vui lòng mô tả chi tiết vấn đề bạn gặp phải...')
+                        ->required()
+                        ->rows(5)
+                        ->maxLength(1000),
+                ])
+                ->modalHeading('Tạo khiếu nại / Tranh chấp')
+                ->modalDescription('Vui lòng mô tả rõ ràng lý do khiếu nại. Admin sẽ xem xét và xử lý trong thời gian sớm nhất.')
+                ->modalSubmitActionLabel('Gửi khiếu nại')
+                ->action(function (Transaction $record, array $data) {
+                    DB::transaction(function () use ($record, $data) {
+                        // Tạo bản ghi Dispute
+                        Dispute::create([
+                            'transaction_id' => $record->id,
+                            'transaction_type' => Transaction::class,
+                            'initiator_id' => Auth::id(),
+                            'reason' => $data['reason'],
+                            'status' => 'pending', // pending, investigating, resolved
+                        ]);
 
-                    \Filament\Notifications\Notification::make()
-                        ->title('Đã mở tranh chấp')
-                        ->body('Quản trị viên sẽ xem xét và xử lý.')
-                        ->warning()
-                        ->send();
+                        // Cập nhật trạng thái transaction
+                        $record->update(['status' => 'disputed']);
+                        // lấy ra tài khoản có quyền là super_admin và support_admin
+                        $admins = User::role(['super_admin', 'support_admin'])->get();
+                        dd($admins);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Đã tạo khiếu nại')
+                            ->body('Khiếu nại của bạn đã được ghi nhận. Quản trị viên sẽ xem xét và liên hệ trong thời gian sớm nhất.')
+                            ->warning()
+                            ->send();
+                    });
                 }),
         ];
     }

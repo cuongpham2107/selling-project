@@ -7,6 +7,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * Model properties
+ *
+ * @property int $id
+ * @property int $buyer_id
+ * @property int $seller_id
+ * @property string|null $description
+ * @property float $amount
+ * @property int $duration
+ * @property float $fee
+ * @property string $status
+ * @property int|null $chat_id
+ * @property \Illuminate\Support\Carbon|null $confirmed_at
+ * @property \Illuminate\Support\Carbon|null $end_time
+ * @property \Illuminate\Support\Carbon|null $completed_at
+ * @property-read \App\Models\User $buyer
+ * @property-read \App\Models\User $seller
+ * @property-read \App\Models\Chat|null $chat
+ */
 class Transaction extends Model
 {
     use HasFactory;
@@ -61,13 +80,14 @@ class Transaction extends Model
     public function calculateTotalFee()
     {
         $baseFee = self::calculateBaseFee($this->amount);
-        
+
         // duration is stored in hours in the database
         $days = floor($this->duration / 24);
-        
+
         if ($days >= 1) {
             // Add 20% of base fee for each day
             $additionalFee = $baseFee * 0.2 * $days;
+
             return $baseFee + $additionalFee;
         }
 

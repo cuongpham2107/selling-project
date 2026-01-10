@@ -54,6 +54,10 @@ class ShopTransactionsTable
                     ->label('Tổng tiền')
                     ->money('VND')
                     ->sortable(),
+                TextColumn::make('fee')
+                    ->label('Phí')
+                    ->money('VND')
+                    ->sortable(),
                 TextColumn::make('status')
                     ->label('Trạng thái')
                     ->badge(),

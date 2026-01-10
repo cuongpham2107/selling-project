@@ -13,7 +13,6 @@ return new class extends Migration
             $table->decimal('min_amount', 15, 2)->nullable();
             $table->decimal('max_amount', 15, 2)->nullable();
             $table->decimal('fee', 15, 2);
-            $table->enum('type', ['middle', 'shop'])->default('middle');
             $table->timestamps();
         });
     }

@@ -51,13 +51,10 @@
                             </p>
                             <div class="flex items-center gap-2">
                                 <x-filament::badge
-                                    :color="$transaction->status === 'pending' ? 'warning' : 'info'"
+                                    :color="$transaction->status->getColor()"
+                                    :icon="$transaction->status->getIcon()"
                                 >
-                                    @if($transaction->status === 'pending')
-                                        Đang chờ
-                                    @elseif($transaction->status === 'held')
-                                        Đang giữ tiền
-                                    @endif
+                                    {{ $transaction->status->getLabel() }}
                                 </x-filament::badge>
                             </div>
                         </div>

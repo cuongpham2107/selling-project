@@ -1,18 +1,18 @@
 <div 
-    class="flex h-[calc(100vh-10rem)] bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg border border-gray-400 dark:border-gray-800"
+    class="flex h-[calc(100vh-10rem)] bg-white dark:bg-gray-900 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-800"
     x-data="chatBox()"
     x-init="init()"
 >
     
     <!-- SIDEBAR (Chat List) -->
-    <div class="w-full md:w-1/3 lg:w-1/4 border-r dark:border-gray-800 flex flex-col bg-gray-50 dark:bg-gray-900/50">
+    <div class="w-full md:w-1/3 lg:w-1/4 border-r border-gray-200 dark:border-gray-800 flex flex-col bg-gray-50 dark:bg-gray-900/50">
         <!-- Search Header -->
-        <div class="p-4 border-b border-gray-400 dark:border-gray-800">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-800">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Chats</h2>
                 <button 
                     wire:click="openNewChatModal"
-                    class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-sm"
+                    class="p-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-lg transition-colors shadow-sm"
                     title="Tạo chat mới"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -40,12 +40,12 @@
             @forelse($this->chats as $chatItem)
                 <div 
                     wire:click="selectChat({{ $chatItem->id }})"
-                    class="cursor-pointer p-4 flex items-center space-x-3 hover:bg-white dark:hover:bg-gray-800 transition-colors {{ $selectedChat && $selectedChat->id === $chatItem->id ? 'bg-white dark:bg-gray-800 border-l-4 border-primary-500 shadow-sm' : 'border-l-4 border-transparent' }}"
+                    class="cursor-pointer p-4 flex items-center space-x-3 hover:bg-white dark:hover:bg-gray-800 transition-colors {{ $selectedChat && $selectedChat->id === $chatItem->id ? 'bg-white dark:bg-gray-800 border-l-4 border-gray-900 dark:border-gray-700 shadow-sm' : 'border-l-4 border-transparent' }}"
                 >
                     <!-- Avatar -->
                     <div class="shrink-0 relative">
                         @if($chatItem->type === 'general')
-                            <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                            <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-gray-100">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                                     <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.915 6.109l2.179 2.535z" clip-rule="evenodd" />
                                 </svg>
@@ -93,7 +93,7 @@
                 </div>
             @empty
                 <div class="p-4 text-center text-gray-500 text-sm">
-                    No conversations found.
+                    Không tìm thấy cuộc trò chuyện nào.
                 </div>
             @endforelse
         </div>
@@ -104,11 +104,11 @@
     <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 w-full md:w-2/3 lg:w-3/4">
         @if($selectedChat)
             <!-- Chat Header -->
-            <div class="px-6 py-4 border-b border-gray-400 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 z-10">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 z-10">
                 <div class="flex items-center space-x-3">
                     <div class="shrink-0">
                         @if($selectedChat->type === 'general')
-                            <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                            <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-gray-100">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                                     <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.915 6.109l2.179 2.535z" clip-rule="evenodd" />
                                 </svg>
@@ -135,12 +135,65 @@
                         @endif
                     </div>
                 </div>
-                <div class="flex space-x-2 text-gray-400">
-                    <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-                    </button>
+                <div class="flex items-center space-x-2">
+                    <!-- Search Toggle -->
+                    <div class="relative" x-data="{ showSearch: false }">
+                        <button 
+                            @click="showSearch = !showSearch; if(!showSearch) $wire.set('messageSearch', '')" 
+                            class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 transition-colors"
+                            :class="{ 'text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800': showSearch }"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                        </button>
+                        
+                        <!-- Search Input (appears when button clicked) -->
+                        <div 
+                            x-show="showSearch" 
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 top-12 z-50"
+                            @click.away="showSearch = false"
+                            style="display: none;"
+                        >
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-3 w-72">
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        wire:model.live.debounce.300ms="messageSearch"
+                                        placeholder="Tìm kiếm tin nhắn..." 
+                                        class="w-full pl-10 pr-4 py-2 rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-gray-900 focus:border-gray-900 dark:focus:ring-gray-700 dark:focus:border-gray-700"
+                                        x-init="$nextTick(() => $el.focus())"
+                                    >
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    @if($messageSearch)
+                                        <button 
+                                            wire:click="$set('messageSearch', '')"
+                                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                            </svg>
+                                        </button>
+                                    @endif
+                                </div>
+                                @if($messageSearch)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                        Đang tìm kiếm: "{{ $messageSearch }}"
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -152,7 +205,7 @@
                             <!-- Avatar -->
                             <div class="shrink-0 flex flex-col justify-end">
                                 <div 
-                                    class="w-8 h-8 rounded-full flex items-center justify-center {{ $message->sender_id === auth()->id() ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-700' }} text-white text-xs font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all"
+                                    class="w-8 h-8 rounded-full flex items-center justify-center {{ $message->sender_id === auth()->id() ? 'bg-gray-900 dark:bg-gray-800' : 'bg-gray-300 dark:bg-gray-700' }} text-white text-xs font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-gray-900 dark:hover:ring-gray-700 transition-all"
                                     @contextmenu.prevent="$wire.showContextMenu({{ $message->sender_id }}, $event.clientX, $event.clientY)"
                                 >
                                      @if($message->sender_id === auth()->id())
@@ -177,7 +230,7 @@
                                 </div>
                                 <div class="px-4 py-2.5 rounded-2xl shadow-sm text-sm leading-relaxed {{ 
                                     $message->sender_id === auth()->id() 
-                                        ? 'bg-indigo-600 text-white rounded-br-none' 
+                                        ? 'bg-gray-900 dark:bg-gray-800 text-white rounded-br-none' 
                                         : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none' 
                                 }}">
                                     {{ $message->content }}
@@ -217,7 +270,7 @@
             </div>
 
             <!-- Input Area -->
-            <div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-400 dark:border-gray-800">
+            <div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
                 <form wire:submit="sendMessage" class="relative flex items-center gap-2">
                     <button type="button" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -228,12 +281,12 @@
                         type="text" 
                         wire:model="content" 
                         placeholder="Type a message..." 
-                        class="flex-1 rounded-full border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 dark:text-white"
+                        class="flex-1 rounded-full border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm focus:ring-gray-900 focus:border-gray-900 dark:focus:ring-gray-700 dark:focus:border-gray-700 placeholder-gray-400 dark:text-white"
                         required
                     >
                     <button 
                         type="submit" 
-                        class="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full transition-colors shadow-sm disabled:opacity-50"
+                        class="p-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-full transition-colors shadow-sm disabled:opacity-50"
                         wire:loading.attr="disabled"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 transform -rotate-25">
@@ -245,8 +298,8 @@
         @else
             <!-- Empty State for No Selection -->
             <div class="flex-1 flex flex-col items-center justify-center bg-white dark:bg-gray-900 text-gray-500">
-                <div class="w-24 h-24 bg-indigo-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
-                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-12 h-12 text-indigo-500">
+                <div class="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-12 h-12 text-gray-900 dark:text-gray-100">
                       <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.915 6.109l2.179 2.535z" clip-rule="evenodd" />
                     </svg>
                 </div>
@@ -350,7 +403,7 @@
     <!-- Modal Tạo Chat Mới -->
     @if($showNewChatModal)
         <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" wire:click="closeNewChatModal">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" wire:click.stop>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" @click.stop>
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Tạo Chat Mới</h3>
@@ -371,7 +424,7 @@
                             type="text" 
                             wire:model.live.debounce.300ms="userSearch" 
                             placeholder="Tìm kiếm người dùng..." 
-                            class="w-full pl-10 pr-4 py-2 rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full pl-10 pr-4 py-2 rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-gray-900 focus:border-gray-900 dark:focus:ring-gray-700 dark:focus:border-gray-700"
                         >
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -385,8 +438,8 @@
                 <div class="flex-1 overflow-y-auto p-4 space-y-2">
                     @forelse($this->availableUsers as $user)
                         <div 
-                            wire:click="$set('selectedUserId', {{ $user->id }})"
-                            class="cursor-pointer p-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors {{ $selectedUserId === $user->id ? 'bg-indigo-50 dark:bg-indigo-900/20 border-2 border-indigo-500' : 'border-2 border-transparent' }}"
+                            wire:click="selectUser({{ $user->id }})"
+                            class="cursor-pointer p-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors {{ $selectedUserId === $user->id ? 'bg-gray-100 dark:bg-gray-800 border-2 border-gray-900 dark:border-gray-700' : 'border-2 border-transparent' }}"
                         >
                             <div class="shrink-0">
                                 @if($user->avatar_url)
@@ -407,7 +460,7 @@
                             </div>
                             @if($selectedUserId === $user->id)
                                 <div class="shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-indigo-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-gray-900 dark:text-gray-100">
                                         <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
@@ -435,8 +488,8 @@
                     </button>
                     <button 
                         wire:click="createNewChat"
-                        :disabled="!selectedUserId"
-                        class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        @disabled(!$selectedUserId)
+                        class="flex-1 px-4 py-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Tạo Chat
                     </button>
@@ -456,28 +509,58 @@ function chatBox() {
         
         init() {
             var self = this;
-            
+
+            // Ensure axios uses the page CSRF token for broadcasting auth
+            try {
+                if (window.axios) {
+                    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+                    if (tokenMeta && tokenMeta.content) {
+                        window.axios.defaults.headers.common['X-CSRF-TOKEN'] = tokenMeta.content;
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not set axios CSRF header', e);
+            }
+
             // Lắng nghe sự kiện từ Livewire
             // Livewire v3 dispatch với named params trả về object {chatId: 10}
             this.$wire.on('chat-selected', function(event) {
-                // Extract chatId từ event object
-                var chatId = event.chatId || event;
-                console.log('Chat selected, ID:', chatId);
-                self.subscribeToChat(chatId);
-                self.scrollToBottom();
+                try {
+                    // Validate payload shape
+                    var chatId = null;
+                    if (event && typeof event === 'object') {
+                        chatId = event.chatId ?? event.chatId ?? null;
+                    } else {
+                        chatId = event;
+                    }
+
+                    // coerce to number when possible
+                    chatId = chatId !== null ? Number(chatId) : null;
+
+                    if (!chatId || Number.isNaN(chatId)) {
+                        console.warn('chat-selected event received with invalid chatId:', event);
+                        return;
+                    }
+
+                    console.log('Chat selected, ID:', chatId);
+                    self.subscribeToChat(chatId);
+                    self.scrollToBottom();
+                } catch (err) {
+                    console.error('Error handling chat-selected event', err, event);
+                }
             });
-            
+
             this.$wire.on('message-sent', function() {
-                self.scrollToBottom();
+                try { self.scrollToBottom(); } catch (e) { console.warn(e); }
             });
-            
+
             // Subscribe vào chat ban đầu nếu có
             var initialChatId = @js($selectedChat?->id);
             if (initialChatId) {
                 console.log('Initial chat ID:', initialChatId);
                 this.subscribeToChat(initialChatId);
             }
-            
+
             this.scrollToBottom();
         },
         
@@ -486,8 +569,14 @@ function chatBox() {
             
             // Unsubscribe khỏi channel cũ
             if (this.currentChannel) {
-                console.log('🔴 Leaving channel:', this.currentChannel);
-                window.Echo.leave(this.currentChannel);
+                try {
+                    console.log('🔴 Leaving channel:', this.currentChannel);
+                    if (window.Echo && typeof window.Echo.leave === 'function') {
+                        window.Echo.leave(this.currentChannel);
+                    }
+                } catch (e) {
+                    console.warn('Error leaving channel', e);
+                }
                 this.currentChannel = null;
             }
             
@@ -496,8 +585,20 @@ function chatBox() {
             
             console.log('🟢 Subscribing to channel:', 'private-' + channelName);
             
+            // Guard: ensure Echo available and chatId is valid
+            if (!chatId || !window.Echo) {
+                console.warn('Cannot subscribe: invalid chatId or Echo not available', chatId, window.Echo);
+                return;
+            }
+
             // Subscribe vào channel mới
-            var channel = window.Echo.private(channelName);
+            var channel;
+            try {
+                channel = window.Echo.private(channelName);
+            } catch (e) {
+                console.error('Failed to create Echo private channel', e);
+                return;
+            }
             
             // Store current channel
             this.currentChannel = channelName;
@@ -505,16 +606,30 @@ function chatBox() {
             // IMPORTANT: Với broadcastAs(), cần dùng dấu chấm (.)
             // Listen for MessageCreated event
             channel.listen('.MessageCreated', function(event) {
-                console.log('🎉 Message received!', event);
-                self.$wire.$refresh();
-                setTimeout(function() {
-                    self.scrollToBottom();
-                }, 200);
+                try {
+                    console.log('🎉 Message received!', event);
+                    if (self && self.$wire && typeof self.$wire.$refresh === 'function') {
+                        self.$wire.$refresh();
+                    }
+                    setTimeout(function() {
+                        self.scrollToBottom();
+                    }, 200);
+                } catch (e) {
+                    console.error('Error handling MessageCreated event', e, event);
+                }
             });
             
             // Error handler
             channel.error(function(error) {
-                console.error('❌ Channel error:', error);
+                try {
+                    console.error('❌ Channel error:', error);
+                    // If auth error, log helpful hints
+                    if (error && error.status === 403) {
+                        console.error('Channel auth failed (403). Check /broadcasting/auth route, CSRF token, and broadcasting auth middleware.');
+                    }
+                } catch (e) {
+                    console.error('Error in channel.error handler', e, error);
+                }
             });
             
             // Subscription success callback
