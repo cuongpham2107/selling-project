@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "agencetwogether/hookshelper": "^0.0.3",
         "andreiio/blade-remix-icon": "^3.8",
         "bezhansalleh/filament-shield": "^4.0",
