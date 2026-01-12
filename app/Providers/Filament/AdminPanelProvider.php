@@ -63,7 +63,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->databaseNotifications()
             ->plugins([
-                HooksHelperPlugin::make(),
+                // HooksHelperPlugin::make(),
                 FilamentShieldPlugin::make()
                     ->gridColumns([
                         'default' => 1,

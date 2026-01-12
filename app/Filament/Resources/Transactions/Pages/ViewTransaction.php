@@ -8,6 +8,7 @@ use App\Models\PointTier;
 use App\Models\PointTransaction;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\BalanceTransactionService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
@@ -49,9 +50,20 @@ class ViewTransaction extends ViewRecord
                             return;
                         }
 
-                        // Hold funds
-                        $buyerBalance->decrement('balance', $totalToHold);
-                        $buyerBalance->increment('held_balance', $totalToHold);
+                        // Hold funds and record transaction
+                        BalanceTransactionService::hold(
+                            user: $record->buyer,
+                            amount: $totalToHold,
+                            type: 'hold',
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Giữ tiền cho giao dịch #'.$record->id,
+                            metadata: [
+                                'amount' => $record->amount,
+                                'fee' => $fee,
+                                'total' => $totalToHold,
+                            ]
+                        );
 
                         $record->update([
                             'status' => 'confirmed',
@@ -68,7 +80,7 @@ class ViewTransaction extends ViewRecord
                     });
                 }),
 
-           // Người bán đánh dấu hàng hóa là đã gửi
+            // Người bán đánh dấu hàng hóa là đã gửi
             Action::make('seller_sent')
                 ->label('Đã gửi hàng')
                 ->color('warning')
@@ -96,15 +108,31 @@ class ViewTransaction extends ViewRecord
                 ->modalDescription('Bạn chắc chắn đã nhận hàng? Tiền sẽ được chuyển cho người bán ngay lập tức.')
                 ->action(function (Transaction $record) {
                     DB::transaction(function () use ($record) {
-                        $buyerBalance = $record->buyer->balance;
-                        $sellerBalance = $record->seller->balance;
                         $totalHeld = $record->amount + $record->fee;
 
-                        // Release from held balance
-                        $buyerBalance->decrement('held_balance', $totalHeld);
+                        // Release held balance from buyer
+                        BalanceTransactionService::decrementHeldBalance(
+                            user: $record->buyer,
+                            amount: $totalHeld,
+                            type: 'release',
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Giải phóng tiền sau khi hoàn tất giao dịch #'.$record->id
+                        );
 
-                        // Transfer to seller (Buyer paid the fee on top, so seller gets full amount)
-                        $sellerBalance->increment('balance', $record->amount);
+                        // Transfer to seller
+                        BalanceTransactionService::incrementBalance(
+                            user: $record->seller,
+                            amount: $record->amount,
+                            type: 'sale',
+                            source: $record,
+                            relatedUserId: $record->buyer_id,
+                            description: 'Thu tiền từ giao dịch #'.$record->id,
+                            metadata: [
+                                'amount' => $record->amount,
+                                'fee_paid_by_buyer' => $record->fee,
+                            ]
+                        );
 
                         // Update transaction
                         $record->update([

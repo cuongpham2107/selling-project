@@ -20,7 +20,7 @@
 
     <div class="fi-simple-layout flex-row">
         {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::SIMPLE_LAYOUT_START, scopes: $renderHookScopes) }}
-        <div class="h-screen w-1/2">
+        <div class="hidden md:block h-screen w-1/2">
             <img class="object-cover w-full h-full" src="{{ asset('svg/image-login.svg') }}" alt="">
         </div>
         @if (($hasTopbar ?? true) && filament()->auth()->check())

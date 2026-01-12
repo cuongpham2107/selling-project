@@ -4,18 +4,21 @@
     x-init="init()"
 >
     
-    <!-- SIDEBAR (Chat List) -->
-    <div class="w-full md:w-1/3 lg:w-1/4 border-r border-gray-200 dark:border-gray-800 flex flex-col bg-gray-50 dark:bg-gray-900/50">
+    <!-- SIDEBAR (Chat List) - Hidden on mobile when chat selected -->
+    <div 
+        class="w-full md:w-1/3 lg:w-1/4 border-r border-gray-200 dark:border-gray-800 flex flex-col bg-gray-50 dark:bg-gray-900/50"
+        :class="{ 'hidden md:flex': @js($selectedChat !== null) }"
+    >
         <!-- Search Header -->
-        <div class="p-4 border-b border-gray-200 dark:border-gray-800">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Chats</h2>
+        <div class="p-3 md:p-4 border-b border-gray-200 dark:border-gray-800">
+            <div class="flex items-center justify-between mb-3 md:mb-4">
+                <h2 class="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-100">Chats</h2>
                 <button 
                     wire:click="openNewChatModal"
-                    class="p-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-lg transition-colors shadow-sm"
+                    class="p-1.5 md:p-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-lg transition-colors shadow-sm"
                     title="Tạo chat mới"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 md:w-5 md:h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                 </button>
@@ -25,9 +28,9 @@
                     type="text" 
                     wire:model.live.debounce.300ms="search" 
                     placeholder="Search..." 
-                    class="w-full pl-10 pr-4 py-2 rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-primary-500 focus:border-primary-500"
+                    class="w-full pl-9 md:pl-10 pr-4 py-2 text-xs md:text-sm rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-primary-500 focus:border-primary-500"
                 >
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div class="absolute inset-y-0 left-0 pl-2.5 md:pl-3 flex items-center pointer-events-none">
                     <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                     </svg>
@@ -40,22 +43,22 @@
             @forelse($this->chats as $chatItem)
                 <div 
                     wire:click="selectChat({{ $chatItem->id }})"
-                    class="cursor-pointer p-4 flex items-center space-x-3 hover:bg-white dark:hover:bg-gray-800 transition-colors {{ $selectedChat && $selectedChat->id === $chatItem->id ? 'bg-white dark:bg-gray-800 border-l-4 border-gray-900 dark:border-gray-700 shadow-sm' : 'border-l-4 border-transparent' }}"
+                    class="cursor-pointer p-3 md:p-4 flex items-center space-x-2 md:space-x-3 hover:bg-white dark:hover:bg-gray-800 transition-colors {{ $selectedChat && $selectedChat->id === $chatItem->id ? 'bg-white dark:bg-gray-800 border-l-4 border-gray-900 dark:border-gray-700 shadow-sm' : 'border-l-4 border-transparent' }}"
                 >
                     <!-- Avatar -->
                     <div class="shrink-0 relative">
                         @if($chatItem->type === 'general')
-                            <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-gray-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 md:w-6 md:h-6">
                                     <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.915 6.109l2.179 2.535z" clip-rule="evenodd" />
                                 </svg>
                             </div>
                         @else
                             @php $avatar = $this->getChatAvatar($chatItem); @endphp
                             @if($avatar)
-                                <img src="{{ $avatar }}" class="w-12 h-12 rounded-full object-cover">
+                                <img src="{{ $avatar }}" class="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover">
                             @else
-                                <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold text-lg">
+                                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold text-base md:text-lg">
                                     {{ substr($this->getChatName($chatItem), 0, 1) }}
                                 </div>
                             @endif
@@ -64,7 +67,7 @@
                         <!-- Unread Badge -->
                         @php $unreadCount = $this->getChatUnreadCount($chatItem); @endphp
                         @if($unreadCount > 0)
-                            <div class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                            <div class="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
                                 {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                             </div>
                         @endif
@@ -72,15 +75,15 @@
 
                     <!-- Info -->
                     <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline mb-1">
-                            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                        <div class="flex justify-between items-baseline mb-0.5 md:mb-1">
+                            <h3 class="text-xs md:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                                 {{ $this->getChatName($chatItem) }}
                             </h3>
                             @if($lastMsg = $chatItem->messages->first())
-                                <span class="text-xs text-gray-400">{{ $lastMsg->created_at->format('H:i') }}</span>
+                                <span class="text-[10px] md:text-xs text-gray-400">{{ $lastMsg->created_at->format('H:i') }}</span>
                             @endif
                         </div>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">
                             @if($lastMsg = $chatItem->messages->first())
                                 <span class="{{ $lastMsg->sender_id === auth()->id() ? '' : 'font-medium text-gray-700 dark:text-gray-300' }}">
                                     {{ $lastMsg->sender_id === auth()->id() ? 'You: ' : '' }}{{ $lastMsg->content }}
@@ -101,35 +104,48 @@
 
 
     <!-- MAIN CHAT AREA -->
-    <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 w-full md:w-2/3 lg:w-3/4">
+    <div 
+        class="flex-1 flex flex-col bg-white dark:bg-gray-900 w-full md:w-2/3 lg:w-3/4"
+        :class="{ 'hidden md:flex': @js($selectedChat === null) }"
+    >
         @if($selectedChat)
             <!-- Chat Header -->
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 z-10">
-                <div class="flex items-center space-x-3">
+            <div class="px-3 md:px-6 py-3 md:py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 z-10">
+                <div class="flex items-center space-x-2 md:space-x-3">
+                    <!-- Back button for mobile -->
+                    <button 
+                        wire:click="deselectChat"
+                        class="md:hidden p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-600 dark:text-gray-400"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                    </button>
+                    
                     <div class="shrink-0">
                         @if($selectedChat->type === 'general')
-                            <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-gray-100">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-900 dark:text-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 md:w-5 md:h-5">
                                     <path fill-rule="evenodd" d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.915 6.109l2.179 2.535z" clip-rule="evenodd" />
                                 </svg>
                             </div>
                         @else
                             @php $avatar = $this->getChatAvatar($selectedChat); @endphp
                             @if($avatar)
-                                <img src="{{ $avatar }}" class="w-10 h-10 rounded-full object-cover">
+                                <img src="{{ $avatar }}" class="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover">
                             @else
-                                <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold">
+                                <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 font-bold text-sm md:text-base">
                                     {{ substr($this->getChatName($selectedChat), 0, 1) }}
                                 </div>
                             @endif
                         @endif
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">
+                        <h2 class="text-sm md:text-lg font-bold text-gray-800 dark:text-gray-100">
                             {{ $this->getChatName($selectedChat) }}
                         </h2>
                         @if($selectedChat->type === 'general')
-                            <p class="text-xs text-green-500 flex items-center">
+                            <p class="text-[10px] md:text-xs text-green-500 flex items-center">
                                 <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span> Online
                             </p>
                         @endif
@@ -140,10 +156,10 @@
                     <div class="relative" x-data="{ showSearch: false }">
                         <button 
                             @click="showSearch = !showSearch; if(!showSearch) $wire.set('messageSearch', '')" 
-                            class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 transition-colors"
+                            class="p-1.5 md:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full text-gray-400 transition-colors"
                             :class="{ 'text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800': showSearch }"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 md:w-6 md:h-6">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                             </svg>
                         </button>
@@ -198,14 +214,14 @@
             </div>
 
             <!-- Messages List -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col scroll-smooth bg-gray-50/50 dark:bg-gray-900" id="chat-messages" x-init="$el.scrollTop = $el.scrollHeight">
+            <div class="flex-1 overflow-y-auto p-2 md:p-4 space-y-4 md:space-y-6 flex flex-col scroll-smooth bg-gray-50/50 dark:bg-gray-900" id="chat-messages" x-init="$el.scrollTop = $el.scrollHeight">
                 @forelse($this->selectedChatMessages as $message)
                     <div class="group w-full flex {{ $message->sender_id === auth()->id() ? 'justify-end' : 'justify-start' }}">
-                        <div class="flex max-w-[80%] md:max-w-[70%] gap-3 {{ $message->sender_id === auth()->id() ? 'flex-row-reverse' : 'flex-row' }}">
+                        <div class="flex max-w-[85%] md:max-w-[80%] lg:max-w-[70%] gap-2 md:gap-3 {{ $message->sender_id === auth()->id() ? 'flex-row-reverse' : 'flex-row' }}">
                             <!-- Avatar -->
                             <div class="shrink-0 flex flex-col justify-end">
                                 <div 
-                                    class="w-8 h-8 rounded-full flex items-center justify-center {{ $message->sender_id === auth()->id() ? 'bg-gray-900 dark:bg-gray-800' : 'bg-gray-300 dark:bg-gray-700' }} text-white text-xs font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-gray-900 dark:hover:ring-gray-700 transition-all"
+                                    class="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center {{ $message->sender_id === auth()->id() ? 'bg-gray-900 dark:bg-gray-800' : 'bg-gray-300 dark:bg-gray-700' }} text-white text-[10px] md:text-xs font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-gray-900 dark:hover:ring-gray-700 transition-all"
                                     @contextmenu.prevent="$wire.showContextMenu({{ $message->sender_id }}, $event.clientX, $event.clientY)"
                                 >
                                      @if($message->sender_id === auth()->id())
@@ -225,10 +241,10 @@
                             <div class="flex flex-col {{ $message->sender_id === auth()->id() ? 'items-end' : 'items-start' }}">
                                 <div class="flex items-end gap-2">
                                      @if($message->sender_id !== auth()->id())
-                                        <span class="text-xs text-gray-500 mb-1 ml-1">{{ $message->sender->name ?? 'Unknown' }}</span>
+                                        <span class="text-[10px] md:text-xs text-gray-500 mb-0.5 md:mb-1 ml-1">{{ $message->sender->name ?? 'Unknown' }}</span>
                                      @endif
                                 </div>
-                                <div class="px-4 py-2.5 rounded-2xl shadow-sm text-sm leading-relaxed {{ 
+                                <div class="px-3 py-2 md:px-4 md:py-2.5 rounded-2xl shadow-sm text-xs md:text-sm leading-relaxed {{ 
                                     $message->sender_id === auth()->id() 
                                         ? 'bg-gray-900 dark:bg-gray-800 text-white rounded-br-none' 
                                         : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none' 
@@ -270,10 +286,10 @@
             </div>
 
             <!-- Input Area -->
-            <div class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-                <form wire:submit="sendMessage" class="relative flex items-center gap-2">
-                    <button type="button" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <div class="p-2 md:p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                <form wire:submit="sendMessage" class="relative flex items-center gap-1 md:gap-2">
+                    <button type="button" class="p-1.5 md:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 md:w-6 md:h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                         </svg>
                     </button>
@@ -281,15 +297,15 @@
                         type="text" 
                         wire:model="content" 
                         placeholder="Type a message..." 
-                        class="flex-1 rounded-full border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm focus:ring-gray-900 focus:border-gray-900 dark:focus:ring-gray-700 dark:focus:border-gray-700 placeholder-gray-400 dark:text-white"
+                        class="flex-1 rounded-full border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 md:px-4 md:py-3 text-xs md:text-sm focus:ring-gray-900 focus:border-gray-900 dark:focus:ring-gray-700 dark:focus:border-gray-700 placeholder-gray-400 dark:text-white"
                         required
                     >
                     <button 
                         type="submit" 
-                        class="p-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-full transition-colors shadow-sm disabled:opacity-50"
+                        class="p-1.5 md:p-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white rounded-full transition-colors shadow-sm disabled:opacity-50"
                         wire:loading.attr="disabled"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 transform -rotate-25">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 md:w-5 md:h-5 transform -rotate-25">
                             <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                         </svg>
                     </button>

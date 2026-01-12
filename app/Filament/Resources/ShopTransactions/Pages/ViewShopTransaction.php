@@ -8,6 +8,7 @@ use App\Models\FeeTier;
 use App\Models\PointTier;
 use App\Models\PointTransaction;
 use App\Models\ShopTransaction;
+use App\Services\BalanceTransactionService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -54,9 +55,21 @@ class ViewShopTransaction extends ViewRecord
                         // Calculate and save fee for shop transaction (1% of amount)
                         $fee = FeeTier::calculateShopFee((float) $totalAmount);
 
-                        // Move from available to held balance
-                        $buyerBalance->decrement('balance', $totalAmount);
-                        $buyerBalance->increment('held_balance', $totalAmount);
+                        // Move from available to held balance and record transaction
+                        BalanceTransactionService::hold(
+                            user: $record->buyer,
+                            amount: $totalAmount,
+                            type: 'hold',
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Giữ tiền cho đơn hàng #'.$record->id,
+                            metadata: [
+                                'product_id' => $record->product_id,
+                                'product_name' => $record->product->name,
+                                'quantity' => $record->quantity,
+                                'fee' => $fee,
+                            ]
+                        );
 
                         // Update transaction status and fee
                         $record->update([
@@ -143,19 +156,65 @@ class ViewShopTransaction extends ViewRecord
                 ->modalDescription('Bạn xác nhận đã nhận được hàng và muốn giải phóng tiền cho người bán?')
                 ->action(function (ShopTransaction $record) {
                     DB::transaction(function () use ($record) {
-                        $buyerBalance = $record->buyer->balance;
-                        $sellerBalance = $record->seller->balance;
                         $totalAmount = $record->amount;
 
                         // Calculate fee for shop transaction (1% of amount)
                         $fee = FeeTier::calculateShopFee((float) $totalAmount);
                         $netAmount = $totalAmount - $fee;
 
-                        // Release from held balance
-                        $buyerBalance->decrement('held_balance', $totalAmount);
+                        // 1. Release held balance from buyer (full amount)
+                        BalanceTransactionService::decrementHeldBalance(
+                            user: $record->buyer,
+                            amount: $totalAmount,
+                            type: 'release',
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Hoàn tất đơn hàng #'.$record->id
+                        );
 
-                        // Transfer to seller
-                        $sellerBalance->increment('balance', $netAmount);
+                        // 2. Record purchase for buyer (full amount paid)
+                        BalanceTransactionService::record(
+                            user: $record->buyer,
+                            type: 'purchase',
+                            amount: -$totalAmount,
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Mua hàng đơn #'.$record->id,
+                            metadata: [
+                                'product_name' => $record->product->name,
+                                'amount' => $totalAmount,
+                            ]
+                        );
+
+                        // 3. Transfer to seller (net amount after fee deduction)
+                        BalanceTransactionService::incrementBalance(
+                            user: $record->seller,
+                            amount: $netAmount,
+                            type: 'sale',
+                            source: $record,
+                            relatedUserId: $record->buyer_id,
+                            description: 'Thu tiền từ đơn hàng #'.$record->id,
+                            metadata: [
+                                'gross_amount' => $totalAmount,
+                                'fee' => $fee,
+                                'net_amount' => $netAmount,
+                                'product_name' => $record->product->name,
+                            ]
+                        );
+
+                        // 4. Record fee deduction from SELLER
+                        BalanceTransactionService::record(
+                            user: $record->seller,
+                            type: 'fee',
+                            amount: -$fee,
+                            source: $record,
+                            relatedUserId: $record->buyer_id,
+                            description: 'Phí giao dịch đơn hàng #'.$record->id.' (1%)',
+                            metadata: [
+                                'fee_percentage' => 1,
+                                'gross_amount' => $totalAmount,
+                            ]
+                        );
 
                         // Update transaction with calculated fee
                         $record->update([
@@ -164,10 +223,24 @@ class ViewShopTransaction extends ViewRecord
                             'fee' => $fee,
                         ]);
 
-                        // Award Points to buyer
+                        // Award Points to buyer and record point transaction
                         $points = PointTier::calculatePoints((float) $record->amount);
                         if ($points > 0) {
                             $record->buyer->point()->increment('points', $points);
+
+                            // Record point earning in balance_transactions
+                            BalanceTransactionService::record(
+                                user: $record->buyer,
+                                type: 'point_redeem',
+                                amount: 0,
+                                source: $record,
+                                relatedUserId: $record->seller_id,
+                                description: 'Nhận '.$points.' điểm từ đơn hàng #'.$record->id,
+                                metadata: [
+                                    'points_earned' => $points,
+                                    'amount' => $totalAmount,
+                                ]
+                            );
 
                             PointTransaction::create([
                                 'user_id' => $record->buyer_id,
@@ -190,6 +263,22 @@ class ViewShopTransaction extends ViewRecord
 
                                 if ($previousCount === 0) {
                                     $referrer->point()->increment('points', $points);
+
+                                    // Record referral point
+                                    BalanceTransactionService::record(
+                                        user: $referrer,
+                                        type: 'point_redeem',
+                                        amount: 0,
+                                        source: $record,
+                                        relatedUserId: $record->buyer_id,
+                                        description: 'Thưởng giới thiệu: '.$points.' điểm (100%)',
+                                        metadata: [
+                                            'points_earned' => $points,
+                                            'referral_type' => 'first_transaction',
+                                            'referred_user' => $record->buyer->username,
+                                        ]
+                                    );
+
                                     PointTransaction::create([
                                         'user_id' => $referrer->id,
                                         'amount' => $points,
@@ -202,6 +291,22 @@ class ViewShopTransaction extends ViewRecord
                                     $recurringPoints = floor($points * 0.1);
                                     if ($recurringPoints > 0) {
                                         $referrer->point()->increment('points', $recurringPoints);
+
+                                        // Record recurring referral point
+                                        BalanceTransactionService::record(
+                                            user: $referrer,
+                                            type: 'point_redeem',
+                                            amount: 0,
+                                            source: $record,
+                                            relatedUserId: $record->buyer_id,
+                                            description: 'Thưởng giới thiệu: '.$recurringPoints.' điểm (10%)',
+                                            metadata: [
+                                                'points_earned' => $recurringPoints,
+                                                'referral_type' => 'recurring',
+                                                'referred_user' => $record->buyer->username,
+                                            ]
+                                        );
+
                                         PointTransaction::create([
                                             'user_id' => $referrer->id,
                                             'amount' => $recurringPoints,
@@ -286,21 +391,70 @@ class ViewShopTransaction extends ViewRecord
                 ->modalDescription('Xác nhận giải quyết tranh chấp và hoàn tất giao dịch cho người bán.')
                 ->action(function (ShopTransaction $record) {
                     DB::transaction(function () use ($record) {
-                        $buyerBalance = $record->buyer->balance;
-                        $sellerBalance = $record->seller->balance;
                         $totalAmount = $record->amount;
 
-                        // Tính phí giao dịch (theo cấu hình gian hàng)
+                        // Calculate fee for shop transaction (1% of amount)
                         $fee = FeeTier::calculateShopFee((float) $totalAmount);
                         $netAmount = $totalAmount - $fee;
 
-                        // Giải phóng số tiền từ held_balance của người mua
-                        $buyerBalance->decrement('held_balance', $totalAmount);
+                        // 1. Release held balance from buyer (full amount)
+                        BalanceTransactionService::decrementHeldBalance(
+                            user: $record->buyer,
+                            amount: $totalAmount,
+                            type: 'release',
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Admin giải quyết tranh chấp - Hoàn tất đơn hàng #'.$record->id
+                        );
 
-                        // Chuyển tiền sau khi trừ phí cho người bán
-                        $sellerBalance->increment('balance', $netAmount);
+                        // 2. Record purchase for buyer (full amount paid)
+                        BalanceTransactionService::record(
+                            user: $record->buyer,
+                            type: 'purchase',
+                            amount: -$totalAmount,
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Mua hàng đơn #'.$record->id.' (Admin giải quyết)',
+                            metadata: [
+                                'product_name' => $record->product->name,
+                                'amount' => $totalAmount,
+                                'resolved_by_admin' => true,
+                            ]
+                        );
 
-                        // Cập nhật trạng thái giao dịch và lưu phí
+                        // 3. Transfer to seller (net amount after fee deduction)
+                        BalanceTransactionService::incrementBalance(
+                            user: $record->seller,
+                            amount: $netAmount,
+                            type: 'sale',
+                            source: $record,
+                            relatedUserId: $record->buyer_id,
+                            description: 'Thu tiền từ đơn hàng #'.$record->id.' (Admin giải quyết)',
+                            metadata: [
+                                'gross_amount' => $totalAmount,
+                                'fee' => $fee,
+                                'net_amount' => $netAmount,
+                                'product_name' => $record->product->name,
+                                'resolved_by_admin' => true,
+                            ]
+                        );
+
+                        // 4. Record fee deduction from SELLER
+                        BalanceTransactionService::record(
+                            user: $record->seller,
+                            type: 'fee',
+                            amount: -$fee,
+                            source: $record,
+                            relatedUserId: $record->buyer_id,
+                            description: 'Phí giao dịch đơn hàng #'.$record->id.' (1%)',
+                            metadata: [
+                                'fee_percentage' => 1,
+                                'gross_amount' => $totalAmount,
+                                'resolved_by_admin' => true,
+                            ]
+                        );
+
+                        // Update transaction with calculated fee
                         $record->update([
                             'status' => Status::Completed,
                             'completed_at' => now(),
@@ -329,25 +483,43 @@ class ViewShopTransaction extends ViewRecord
                 ->modalDescription('Xác nhận hoàn tiền cho người mua và hủy giao dịch.')
                 ->action(function (ShopTransaction $record) {
                     DB::transaction(function () use ($record) {
-                        $buyerBalance = $record->buyer->balance;
                         $totalAmount = $record->amount;
 
-                        // Hoàn tiền cho người mua
-                        $buyerBalance->decrement('held_balance', $totalAmount);
-                        // Tính phí cho giao dịch gian hàng (1% của tổng tiền)
+                        // 1. Release held balance from buyer
+                        BalanceTransactionService::decrementHeldBalance(
+                            user: $record->buyer,
+                            amount: $totalAmount,
+                            type: 'release',
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Admin giải quyết tranh chấp - Hoàn tiền đơn hàng #'.$record->id
+                        );
 
-                        // Update transaction
+                        // 2. Refund to buyer (return full amount to balance)
+                        BalanceTransactionService::incrementBalance(
+                            user: $record->buyer,
+                            amount: $totalAmount,
+                            type: 'refund',
+                            source: $record,
+                            relatedUserId: $record->seller_id,
+                            description: 'Hoàn tiền đơn hàng #'.$record->id.' (Admin giải quyết)',
+                            metadata: [
+                                'product_name' => $record->product->name,
+                                'amount' => $totalAmount,
+                                'resolved_by_admin' => true,
+                            ]
+                        );
+
+                        // Update transaction and restore product
                         $record->update([
                             'status' => Status::Cancelled,
-                            // Giải phóng số tiền từ held_balance
                             'resolved_at' => now(),
                         ]);
 
-                        // Chuyển tiền cho người bán
                         $record->product->update(['status' => 'active']);
 
                         Notification::make()
-                        // Cập nhật giao dịch với phí đã tính
+                            ->title('Tranh chấp đã giải quyết')
                             ->body('Đã hoàn tiền cho người mua và hủy giao dịch.')
                             ->success()
                             ->send();

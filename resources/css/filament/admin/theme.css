@@ -6,3 +6,15 @@
 @source '../../../../resources/views/livewire/**/*.blade.php';
 @source '../../../../resources/views/components/**/*.blade.php';
 @source '../../../../vendor/wallacemartinss/filament-icon-picker/resources/views/**/*';
+
+
+/* --------------------------------------------------
+   Scrollable Table Container
+   Supports v3 (.fi-ta-content) and v4 (.fi-ta-content-ctn)
+-------------------------------------------------- */
+.fi-ta-content,
+.fi-ta-content-ctn {
+    max-height: calc(100vh + 20rem) !important;
+    overflow-y: auto;
+    position: relative;
+}

@@ -37,9 +37,9 @@ class Market extends Page implements HasActions, HasTable
 
     protected static ?string $navigationLabel = 'Chợ';
 
-    protected static ?string $title = 'Chợ';
+    protected static ?string $title = '';
 
-    protected ?string $heading = 'Chợ';
+    protected ?string $heading = '';
 
     public function table(Table $table): Table
     {
@@ -63,7 +63,6 @@ class Market extends Page implements HasActions, HasTable
             )
             ->columns([
                 TextColumn::make('name')
-                    ->searchable()
                     ->hidden(),
                 View::make('markets.table.custom-row-content'),
             ])
@@ -102,6 +101,7 @@ class Market extends Page implements HasActions, HasTable
                     ->constraintPickerColumns(2),
             ], layout: FiltersLayout::AboveContentCollapsible)
             ->deferFilters(false)
+            ->defaultPaginationPageOption(25)
             ->actions([
                 BuyProductAction::make(),
             ])

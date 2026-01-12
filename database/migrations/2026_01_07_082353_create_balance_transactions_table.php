@@ -35,6 +35,7 @@ return new class extends Migration
                 'dispute_payout',       // Thanh toán từ tranh chấp
                 'middleman_purchase',   // Mua qua trung gian
                 'middleman_sale',       // Bán qua trung gian
+                'admin_topup',          // Admin cấp tiền
             ]);
             
             // Amount (positive = tiền vào, negative = tiền ra)
