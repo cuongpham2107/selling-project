@@ -10,8 +10,8 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\RawJs;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\RawJs;
 
 class DepositForm
 {
@@ -42,7 +42,7 @@ class DepositForm
                                     ->label('Chủ tài khoản')
                                     ->disabled()
                                     ->weight(FontWeight::Bold)
-                                    ->default(fn(): string =>  config('bank.account') ?? 'Phạm Mạnh Cường'),
+                                    ->default(fn (): string => config('bank.account') ?? 'Phạm Mạnh Cường'),
 
                                 TextEntry::make('bank_number')
                                     ->label('Số tài khoản')
@@ -51,13 +51,13 @@ class DepositForm
                                     ->copyMessageDuration(1500)
                                     ->disabled()
                                     ->weight(FontWeight::Bold)
-                                    ->default(fn(): string =>  config('bank.number') ?? '123456789'),
+                                    ->default(fn (): string => config('bank.number') ?? '123456789'),
                                 TextEntry::make('bank_name')
                                     ->label('Tên ngân hàng')
                                     ->disabled()
                                     ->weight(FontWeight::Bold)
-                                    ->default(fn(): string =>  config('bank.name') ?? 'Ngân hàng ABC'),
-                                
+                                    ->default(fn (): string => config('bank.name') ?? 'Ngân hàng ABC'),
+
                             ])->columns(1),
                             ImageEntry::make('qr_code')
                                 ->label('Mã QR')

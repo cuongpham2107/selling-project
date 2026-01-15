@@ -8,7 +8,6 @@ use Illuminate\Contracts\Support\Htmlable;
 enum Method: string implements HasLabel
 {
     case BankTransfer = 'bank_transfer';
-    
 
     public function getLabel(): string|Htmlable|null
     {

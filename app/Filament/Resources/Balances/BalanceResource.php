@@ -8,13 +8,8 @@ use App\Filament\Resources\Balances\Pages\ListBalances;
 use App\Filament\Resources\Balances\Pages\ViewBalance;
 use App\Models\Balance;
 use BackedEnum;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use UnitEnum;
 
@@ -43,11 +38,11 @@ class BalanceResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             $query->where('user_id', auth()->id());
         }
-        
+
         return $query;
     }
 
@@ -56,6 +51,7 @@ class BalanceResource extends Resource
         if (auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             return true;
         }
+
         return false;
     }
 

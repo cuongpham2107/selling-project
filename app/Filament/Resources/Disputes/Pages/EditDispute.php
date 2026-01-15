@@ -45,14 +45,15 @@ class EditDispute extends EditRecord
                     $dispute = $this->record;
                     $transaction = $dispute->transaction; // MorphTo
 
-                    if (!$transaction) {
-                         Notification::make()->title('Giao dịch không tồn tại')->danger()->send();
-                         return;
+                    if (! $transaction) {
+                        Notification::make()->title('Giao dịch không tồn tại')->danger()->send();
+
+                        return;
                     }
 
                     \Illuminate\Support\Facades\DB::transaction(function () use ($dispute, $transaction) {
                         $buyerBalance = $transaction->buyer->balance;
-                        
+
                         if ($transaction instanceof \App\Models\ShopTransaction) {
                             // Shop: Fee 1% is NOT refunded
                             $refundAmount = $transaction->amount - $transaction->fee;
@@ -88,15 +89,16 @@ class EditDispute extends EditRecord
                     $dispute = $this->record;
                     $transaction = $dispute->transaction;
 
-                    if (!$transaction) {
-                         Notification::make()->title('Giao dịch không tồn tại')->danger()->send();
-                         return;
+                    if (! $transaction) {
+                        Notification::make()->title('Giao dịch không tồn tại')->danger()->send();
+
+                        return;
                     }
 
                     \Illuminate\Support\Facades\DB::transaction(function () use ($dispute, $transaction) {
                         $buyerBalance = $transaction->buyer->balance;
                         $sellerBalance = $transaction->seller->balance;
-                        
+
                         if ($transaction instanceof \App\Models\ShopTransaction) {
                             $netAmount = $transaction->amount - $transaction->fee;
                             $buyerBalance->decrement('held_balance', $transaction->amount);

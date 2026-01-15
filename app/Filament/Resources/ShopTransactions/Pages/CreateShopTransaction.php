@@ -16,14 +16,14 @@ class CreateShopTransaction extends CreateRecord
     //     $data['status'] = 'held';
 
     //     $buyerBalance = auth()->user()->balance;
-        
+
     //     if ($buyerBalance->balance < $data['amount']) {
     //          \Filament\Notifications\Notification::make()
     //             ->title('Số dư không đủ')
     //             ->body('Số dư của bạn không đủ để thực hiện giao dịch này.')
     //             ->danger()
     //             ->send();
-            
+
     //         $this->halt();
     //     }
 

@@ -37,13 +37,13 @@ class ChatResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             $query->whereHas('participants', function ($q) {
                 $q->where('user_id', auth()->id());
             });
         }
-        
+
         return $query;
     }
 

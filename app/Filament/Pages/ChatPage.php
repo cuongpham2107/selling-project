@@ -33,12 +33,12 @@ class ChatPage extends Page
     public static function getNavigationBadge(): ?string
     {
         return Message::whereHas('chat.participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
+            $query->where('user_id', auth()->id());
+        })
             ->where('sender_id', '!=', auth()->id()) // Not sent by me
             ->whereNull('read_at') // Not read yet
             ->count() ?: null;
-        
+
     }
 
     public static function getNavigationBadgeTooltip(): ?string

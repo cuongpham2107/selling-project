@@ -37,17 +37,17 @@ class DisputeResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             $query->where(function ($q) {
                 $q->where('initiator_id', auth()->id())
-                  ->orWhereHasMorph('transaction', [\App\Models\Transaction::class, \App\Models\ShopTransaction::class], function ($query) {
-                      $query->where('buyer_id', auth()->id())
+                    ->orWhereHasMorph('transaction', [\App\Models\Transaction::class, \App\Models\ShopTransaction::class], function ($query) {
+                        $query->where('buyer_id', auth()->id())
                             ->orWhere('seller_id', auth()->id());
-                  });
+                    });
             });
         }
-        
+
         return $query;
     }
 

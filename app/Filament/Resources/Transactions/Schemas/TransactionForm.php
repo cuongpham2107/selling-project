@@ -12,7 +12,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Support\RawJs;
-use Filament\Schemas\Components\Icon;
 
 class TransactionForm
 {
@@ -81,7 +80,7 @@ class TransactionForm
                                         ->suffix('Giờ')
                                         ->required()
                                         ->columnSpan(3),
-                                   
+
                                     Select::make('status')
                                         ->label('Trạng thái')
                                         ->options([

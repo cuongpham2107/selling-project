@@ -12,8 +12,6 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\RawJs;
-use Filament\Schemas\Components\Icon;
-use Filament\Support\Icons\Heroicon;
 
 class ShopTransactionForm
 {

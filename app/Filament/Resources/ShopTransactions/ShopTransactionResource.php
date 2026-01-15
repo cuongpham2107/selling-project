@@ -40,11 +40,11 @@ class ShopTransactionResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             $query->where(function ($q) {
                 $q->where('buyer_id', auth()->id())
-                  ->orWhere('seller_id', auth()->id());
+                    ->orWhere('seller_id', auth()->id());
             });
 
             // Sắp xếp status theo thứ tự 'pending', 'held', 'completed', 'disputed', 'cancelled'
@@ -60,7 +60,7 @@ class ShopTransactionResource extends Resource
                 END
             ");
         }
-        
+
         return $query;
     }
 
@@ -73,6 +73,7 @@ class ShopTransactionResource extends Resource
             // 'edit' => EditShopTransaction::route('/{record}/edit'),
         ];
     }
+
     public static function getNavigationBadge(): ?string
     {
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
@@ -81,6 +82,7 @@ class ShopTransactionResource extends Resource
                 ->where('status', 'pending')
                 ->count();
         }
+
         return null;
     }
 

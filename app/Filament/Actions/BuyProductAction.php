@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class BuyProductAction
 {
-   public static function make(): Action
+    public static function make(): Action
     {
         return Action::make('buy_product')
             ->label('Mua ngay')
@@ -42,23 +42,25 @@ class BuyProductAction
                         ->body('Tài khoản của bạn không đủ. Vui lòng nạp tiền vào tài khoản để thực hiện giao dịch.')
                         ->danger()
                         ->send();
+
                     return;
                 }
 
-                if($buyer->id === $record->user_id) {
+                if ($buyer->id === $record->user_id) {
                     Notification::make()
                         ->title('Bạn không thể mua sản phẩm của chính mình.')
                         ->danger()
                         ->send();
+
                     return;
                 }
 
-                if($record->status !== 'active')
-                {
+                if ($record->status !== 'active') {
                     Notification::make()
                         ->title('Sản phẩm này không còn khả dụng.')
                         ->danger()
                         ->send();
+
                     return;
                 }
 
@@ -67,15 +69,15 @@ class BuyProductAction
                     // Product status remains 'active' until seller confirms
                     // This allows multiple buyers to attempt purchase
                     // First seller to confirm will get the sale
-                    
+
                     // Create chat room for this transaction
                     $chat = Chat::create([
-                        'type' => 'private_shop'
+                        'type' => 'private_shop',
                     ]);
-                    
+
                     // Attach participants (buyer and seller) to the chat
                     $chat->participants()->attach([$record->user_id, $buyer->id]);
-                    
+
                     // Create transaction record with pending status
                     // Money will be deducted when seller confirms the order
                     ShopTransaction::create([
@@ -87,7 +89,7 @@ class BuyProductAction
                         'status' => 'pending',
                         'chat_id' => $chat->id,
                         'end_time' => now()->addDays(3),
-                        'completed_at' => null
+                        'completed_at' => null,
                     ]);
                 });
 

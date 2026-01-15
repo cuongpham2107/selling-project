@@ -22,6 +22,7 @@ class ShopProductResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài khoản';
+
     protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Sản phẩm';

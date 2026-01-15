@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\ShopTransactions\Tables;
 
-use App\Filament\Resources\ShopTransactions\Enums\Status;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -17,7 +16,7 @@ class ShopTransactionsTable
     {
         $isSuperAdmin = auth()->user()->hasRole(config('filament-shield.super_admin.name'));
         $userId = auth()->id();
-        
+
         return $table
             ->columns([
                 TextColumn::make('transaction_type')
@@ -32,7 +31,8 @@ class ShopTransactionsTable
                         if ($state !== auth()->user()->username) {
                             return $state;
                         }
-                        return "Bạn";
+
+                        return 'Bạn';
                     })
                     ->searchable()
                     ->sortable(),
@@ -43,7 +43,8 @@ class ShopTransactionsTable
                         if ($state !== auth()->user()->username) {
                             return $state;
                         }
-                        return "Bạn";
+
+                        return 'Bạn';
                     })
                     ->searchable()
                     ->sortable(),
@@ -71,13 +72,13 @@ class ShopTransactionsTable
                     ->sortable(),
             ])
             ->defaultGroup(
-                $isSuperAdmin 
-                    ? null 
+                $isSuperAdmin
+                    ? null
                     : 'transaction_type'
             )
             ->groups([
                 Group::make($isSuperAdmin ? '' : 'transaction_type')
-                ->label('Loại giao dịch'),
+                    ->label('Loại giao dịch'),
             ])
             ->filters([
                 //

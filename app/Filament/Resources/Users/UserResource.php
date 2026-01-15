@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Users;
 
-use App\Filament\Resources\Users\RelationManagers\BankAccountsRelationManager;
-use App\Filament\Resources\Users\RelationManagers\ShopTransactionsAsBuyerRelationManager;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\RelationManagers\BankAccountsRelationManager;
+use App\Filament\Resources\Users\RelationManagers\ShopTransactionsAsBuyerRelationManager;
 use App\Filament\Resources\Users\Schemas\UserForm;
 use App\Filament\Resources\Users\Tables\UsersTable;
 use App\Models\User;
@@ -31,7 +31,6 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);
@@ -52,13 +51,13 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        
+
         $query = parent::getEloquentQuery();
-       
+
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             $query->where('id', auth()->id());
         }
-        
+
         return $query;
     }
 
@@ -67,7 +66,7 @@ class UserResource extends Resource
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             return static::getUrl('edit', ['record' => auth()->id()]);
         }
-        
+
         return parent::getNavigationUrl();
     }
 

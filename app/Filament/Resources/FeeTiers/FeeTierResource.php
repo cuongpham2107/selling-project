@@ -24,7 +24,6 @@ class FeeTierResource extends Resource
 
     protected static ?string $pluralLabel = 'Bảng phí giao dịch';
 
-
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\FeeTiers\Schemas\FeeTierForm::configure($schema);

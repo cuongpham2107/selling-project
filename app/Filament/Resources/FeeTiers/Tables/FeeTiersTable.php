@@ -5,7 +5,6 @@ namespace App\Filament\Resources\FeeTiers\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -32,9 +31,10 @@ class FeeTiersTable
                     ->label('Khoảng tiền')
                     ->state(function ($record) {
                         $min = number_format($record->min_amount, 0, ',', '.');
-                        $max = $record->max_amount 
-                            ? number_format($record->max_amount, 0, ',', '.') 
+                        $max = $record->max_amount
+                            ? number_format($record->max_amount, 0, ',', '.')
                             : '∞';
+
                         return "{$min} - {$max} VNĐ";
                     })
                     ->searchable(false),

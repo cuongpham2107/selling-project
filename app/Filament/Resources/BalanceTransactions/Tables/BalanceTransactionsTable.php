@@ -54,7 +54,7 @@ class BalanceTransactionsTable
                     ->label('Số tiền')
                     ->money('VND')
                     ->color(fn ($state) => $state >= 0 ? 'success' : 'danger')
-                    ->formatStateUsing(fn ($state) => ($state >= 0 ? '+' : '') . number_format((float) $state, 0, ',', '.') . ' VNĐ')
+                    ->formatStateUsing(fn ($state) => ($state >= 0 ? '+' : '').number_format((float) $state, 0, ',', '.').' VNĐ')
                     ->sortable(),
                 TextColumn::make('balance_after')
                     ->label('Số dư sau')
@@ -89,6 +89,7 @@ class BalanceTransactionsTable
                         if (strlen($state) <= 50) {
                             return null;
                         }
+
                         return $state;
                     })
                     ->toggleable(),
@@ -134,4 +135,3 @@ class BalanceTransactionsTable
             ]);
     }
 }
-

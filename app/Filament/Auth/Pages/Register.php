@@ -1,12 +1,14 @@
 <?php
+
 namespace App\Filament\Auth\Pages;
 
-use Filament\Auth\Pages\Register as BaseAuth;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Component;
-use Filament\Forms\Components\TextInput;
-use Closure;
 use App\Models\User;
+use Closure;
+use Filament\Auth\Pages\Register as BaseAuth;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Schema;
+
 class Register extends BaseAuth
 {
     protected static string $layout = 'filament.components.layout.simple';
@@ -20,9 +22,10 @@ class Register extends BaseAuth
                 $this->getReferralCodeFormComponent(),
                 $this->getPasswordFormComponent(),
                 $this->getPasswordConfirmationFormComponent(),
-              
+
             ]);
     }
+
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -30,11 +33,9 @@ class Register extends BaseAuth
     protected function mutateFormDataBeforeRegister(array $data): array
     {
         $data['referral_code'] = strtoupper(trim($data['referral_code'] ?? ''));
+
         return $data;
     }
-
-
-
 
     protected function getReferralCodeFormComponent(): Component
     {
@@ -43,14 +44,14 @@ class Register extends BaseAuth
             ->afterLabel('Nhập mã giới thiệu của bạn (Nếu có)')
             ->live()
             ->rules([
-                 fn (): Closure => function (string $attribute, $value, Closure $fail) {
+                fn (): Closure => function (string $attribute, $value, Closure $fail) {
                     // Nếu không nhập mã giới thiệu thì bỏ qua validation
                     if (empty($value)) {
                         return;
                     }
-                    
+
                     $check_exists = User::where('referral_code', $value)->exists();
-                    if (!$check_exists) {
+                    if (! $check_exists) {
                         $fail('Mã giới thiệu không hợp lệ.');
                     }
                 },

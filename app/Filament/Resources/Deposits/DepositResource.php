@@ -23,8 +23,9 @@ class DepositResource extends Resource
     protected static ?string $navigationLabel = 'Nạp tiền';
 
     protected static ?string $pluralLabel = 'Lịch sử nạp tiền';
+
     protected static ?int $navigationSort = 2;
-    
+
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\Deposits\Schemas\DepositForm::configure($schema);

@@ -47,7 +47,7 @@ class BalanceTransactionForm
                                     ])
                                     ->required(),
                             ]),
-                        
+
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('amount')
@@ -74,7 +74,7 @@ class BalanceTransactionForm
                             ->relationship('relatedUser', 'username')
                             ->searchable()
                             ->preload(),
-                        
+
                         Textarea::make('description')
                             ->label('Mô tả')
                             ->rows(3)
@@ -125,4 +125,3 @@ class BalanceTransactionForm
             ]);
     }
 }
-

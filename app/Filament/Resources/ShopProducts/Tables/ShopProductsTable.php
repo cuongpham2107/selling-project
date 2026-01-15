@@ -8,8 +8,8 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
 use Filament\Tables\Grouping\Group;
+use Filament\Tables\Table;
 
 class ShopProductsTable
 {
@@ -66,7 +66,7 @@ class ShopProductsTable
                     ->label('Người bán'),
             ])
             ->filters([
-                
+
             ])
             ->actions([
                 ViewAction::make(),

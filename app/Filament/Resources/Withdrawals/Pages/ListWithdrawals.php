@@ -6,8 +6,6 @@ use App\Filament\Resources\Withdrawals\WithdrawalResource;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Support\Exceptions\Halt;
-
 
 class ListWithdrawals extends ListRecords
 {
@@ -25,6 +23,7 @@ class ListWithdrawals extends ListRecords
                 ->visible($hasDefaultBankAccount)
                 ->mutateFormDataUsing(function (array $data): array {
                     $data['user_id'] = auth()->id();
+
                     return $data;
                 }),
         ];

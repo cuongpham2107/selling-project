@@ -7,15 +7,8 @@ use App\Filament\Resources\Withdrawals\Pages\EditWithdrawal;
 use App\Filament\Resources\Withdrawals\Pages\ListWithdrawals;
 use App\Models\Withdrawal;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use UnitEnum;
 
@@ -46,11 +39,11 @@ class WithdrawalResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         if (! auth()->user()->hasRole(config('filament-shield.super_admin.name'))) {
             $query->where('user_id', auth()->id());
         }
-        
+
         return $query;
     }
 

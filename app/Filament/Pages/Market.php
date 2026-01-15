@@ -2,10 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Actions\BuyProductAction;
 use App\Models\ShopProduct;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use App\Filament\Actions\BuyProductAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Pages\Page;
@@ -67,9 +67,11 @@ class Market extends Page implements HasActions, HasTable
                 View::make('markets.table.custom-row-content'),
             ])
             ->contentGrid([
-                'md' => 2,
+                '' => 2,
+                'sm' => 2,
+                'md' => 3,
                 'lg' => 4,
-                'xl' => 5,
+                'xl' => 6,
             ])
             ->filters([
                 \Filament\Tables\Filters\QueryBuilder::make()

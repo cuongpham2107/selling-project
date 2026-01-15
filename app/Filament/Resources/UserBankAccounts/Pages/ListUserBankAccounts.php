@@ -18,6 +18,7 @@ class ListUserBankAccounts extends ListRecords
                 ->slideOver()
                 ->mutateDataUsing(function (array $data): array {
                     $data['user_id'] = auth()->id();
+
                     return $data;
                 }),
         ];

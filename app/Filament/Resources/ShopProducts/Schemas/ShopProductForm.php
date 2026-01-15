@@ -57,7 +57,7 @@ class ShopProductForm
                         ),
                     ])->columnSpanFull(),
                 ...(
-                    !auth()->user()?->hasRole('panel_user')
+                    ! auth()->user()?->hasRole('panel_user')
                         ? [
                             Section::make('Quản lý kho & Trạng thái')
                                 ->schema([
@@ -84,10 +84,10 @@ class ShopProductForm
                                         ->placeholder('Mỗi dòng một tài khoản/mã code.')
                                         ->rows(10)
                                         ->columnSpanFull(),
-                                ])
+                                ]),
                         ]
                         : []
-                )
+                ),
             ]);
     }
 }

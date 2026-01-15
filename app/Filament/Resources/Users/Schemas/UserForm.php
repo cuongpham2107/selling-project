@@ -49,7 +49,7 @@ class UserForm
                                     ->label('Số dư')
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
-                                    ->numeric()                             
+                                    ->numeric()
                                     ->default(0)
                                     ->disabled()
                                     ->afterStateHydrated(function (TextInput $component, $state, $record) {
@@ -61,7 +61,7 @@ class UserForm
                                     ->label('Số dư bị giữ')
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
-                                    ->numeric() 
+                                    ->numeric()
                                     ->default(0)
                                     ->disabled()
                                     ->afterStateHydrated(function (TextInput $component, $state, $record) {

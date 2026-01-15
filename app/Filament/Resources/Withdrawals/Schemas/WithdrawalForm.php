@@ -63,8 +63,8 @@ class WithdrawalForm
                             TextEntry::make('account_number')
                                 ->label('Số tài khoản')
                                 ->default(fn () => auth()->user()->defaultBankAccount?->account_number ?? '')
-                                 ->weight(FontWeight::Bold)
-                                 ->disabled(),
+                                ->weight(FontWeight::Bold)
+                                ->disabled(),
                             TextEntry::make('bank_name')
                                 ->label('Tên ngân hàng')
                                 ->default(fn () => auth()->user()->defaultBankAccount?->bank_name ?? '')
