@@ -9,6 +9,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
+use Wallacemartinss\FilamentIconPicker\Forms\Components\IconPickerField;
 
 class ShopCategoryForm
 {
@@ -37,9 +38,10 @@ class ShopCategoryForm
                             ->columnSpanFull(),
                         Grid::make(2)
                             ->schema([
-                                TextInput::make('icon')
-                                    ->label('Icon (Heroicon)')
-                                    ->placeholder('rectangle-stack'),
+                                 IconPickerField::make('icon')
+                                    ->label('Select an Icon')
+                                    ->searchable()
+                                    ->required(),
                                 Toggle::make('is_active')
                                     ->label('Hiển thị')
                                     ->default(true),

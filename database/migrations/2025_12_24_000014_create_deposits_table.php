@@ -14,8 +14,10 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->string('method')->nullable();
             $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
+            $table->json('sepay_payload')->nullable();
+
             $table->timestamps();
-            
+
             $table->index('status');
         });
     }

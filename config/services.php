@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'sepay' => [
+        'merchant_id' => env('SEPAY_MERCHANT_ID'),
+        'api_key' => env('SEPAY_API_KEY'),
+    ],
+
 ];

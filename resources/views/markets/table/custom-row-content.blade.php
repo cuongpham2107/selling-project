@@ -40,7 +40,7 @@
                 <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-primary-500 transition-colors tracking-tight">
                     {{ $record->name }}
                 </h3>
-                <p class="mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                <p class="mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed h-9">
                     {{ $record->description ?: 'Không có mô tả cho sản phẩm.' }}
                 </p>
             </div>

@@ -41,6 +41,14 @@ class Market extends Page implements HasActions, HasTable
 
     protected ?string $heading = '';
 
+    public ?int $selectedCategoryId = null;
+
+    public function filterByCategory(?int $categoryId): void
+    {
+        $this->selectedCategoryId = $categoryId;
+        $this->resetTable();
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -48,6 +56,11 @@ class Market extends Page implements HasActions, HasTable
                 ShopProduct::query()
                     ->with(['seller', 'categories'])
                     ->where('status', 'active')
+                    ->when($this->selectedCategoryId, function ($query) {
+                        $query->whereHas('categories', function ($q) {
+                            $q->where('shop_categories.id', $this->selectedCategoryId);
+                        });
+                    })
                     // Explicitly select only safe columns, excluding 'stock'
                     ->select([
                         'id',

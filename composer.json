@@ -21,6 +21,8 @@
         "openplain/filament-shadcn-theme": "^1.0",
         "owenvoke/blade-fontawesome": "^2.9",
         "secondnetwork/blade-tabler-icons": "^3.36",
+        "sepay/sepay-pg": "^1.0",
+        "wallacemartinss/filament-icon-picker": "^1.4",
         "watheqalshowaiter/filament-sticky-table-header": "^1.3"
     },
     "require-dev": {

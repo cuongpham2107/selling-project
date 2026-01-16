@@ -5,10 +5,12 @@ namespace App\Filament\Resources\Users\Schemas;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\RawJs;
+use Filament\Support\Enums\FontWeight;
 
 class UserForm
 {
@@ -43,50 +45,52 @@ class UserForm
                 Section::make('Tài chính')
                     ->description('Thông tin tài chính của người dùng.')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
-                                TextInput::make('initial_balance')
-                                    ->label('Số dư')
-                                    ->mask(RawJs::make('$money($input)'))
-                                    ->stripCharacters(',')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->disabled()
-                                    ->afterStateHydrated(function (TextInput $component, $state, $record) {
-                                        if ($record && $record->balance) {
-                                            $component->state($record->balance->balance);
-                                        }
-                                    }),
-                                TextInput::make('initial_held_balance')
-                                    ->label('Số dư bị giữ')
-                                    ->mask(RawJs::make('$money($input)'))
-                                    ->stripCharacters(',')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->disabled()
-                                    ->afterStateHydrated(function (TextInput $component, $state, $record) {
-                                        if ($record && $record->balance) {
-                                            $component->state($record->balance->held_balance ?? 0);
-                                        }
-                                    }),
+                                    TextEntry::make('balance.balance')
+                                        ->label('Số dư')
+                                        ->money('VND')
+                                        ->icon('heroicon-o-currency-dollar')
+                                        ->weight(FontWeight::Bold)
+                                        ->color('success')
+                                        ->default(0),
+                                    TextEntry::make('balance.held_balance')
+                                        ->label('Số dư bị giữ')
+                                        ->money('VND')
+                                        ->icon('heroicon-o-currency-dollar')
+                                        ->weight(FontWeight::Bold)
+                                        ->color('warning')
+                                        ->default(0),
+                                    //Point
+                                    TextEntry::make('point.points')
+                                        ->label('Điểm')
+                                        ->icon('heroicon-o-star')
+                                        ->weight(FontWeight::Bold)
+                                        ->color('primary')
+                                        ->default(0),
                             ]),
                     ]),
                 Section::make('Phân quyền & Giới thiệu')
                     ->schema([
-                        Grid::make(3)
+                        Grid::make(2)
                             ->schema([
                                 Select::make('roles')
                                     ->relationship('roles', 'name')
                                     ->multiple()
                                     ->preload()
                                     ->searchable()
-                                    ->disabled(fn () => ! auth()->user()->hasRole(config('filament-shield.super_admin.name'))),
+                                    ->columnSpanFull()
+                                    ->hidden(fn () => ! auth()->user()->hasRole(config('filament-shield.super_admin.name'))),
                                 TextInput::make('referral_code')
                                     ->label('Mã giới thiệu')
+                                    ->disabled(fn () => ! auth()->user()->hasRole(config('filament-shield.super_admin.name')))
+                                    ->dehydrated(fn ($state) => $state !== null)
                                     ->unique(ignoreRecord: true),
                                 Select::make('referred_by')
                                     ->label('Người giới thiệu')
                                     ->relationship('referredBy', 'username')
+                                    ->disabled(fn () => ! auth()->user()->hasRole(config('filament-shield.super_admin.name')))
+                                    ->dehydrated(fn ($state) => $state !== null)
                                     ->searchable(),
                             ]),
                     ]),

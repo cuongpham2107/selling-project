@@ -52,7 +52,8 @@ class DepositResource extends Resource
         return [
             'index' => ListDeposits::route('/'),
             // 'create' => CreateDeposit::route('/create'),
-            // 'edit' => EditDeposit::route('/{record}/edit'),
+            'edit' => EditDeposit::route('/{record}/edit'),
+            'success' => \App\Filament\Resources\Deposits\Pages\SuccessDeposit::route('/{record}/success'),
         ];
     }
 }

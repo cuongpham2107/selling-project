@@ -20,10 +20,17 @@ class Deposit extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'amount', 'method', 'status'];
+    protected $fillable = [
+        'user_id',
+        'amount',
+        'method',
+        'status',
+        'sepay_payload',
+    ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'sepay_payload' => 'array',
     ];
 
     public function user(): BelongsTo

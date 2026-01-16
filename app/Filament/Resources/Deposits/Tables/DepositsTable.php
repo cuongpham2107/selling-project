@@ -35,6 +35,7 @@ class DepositsTable
                     ->searchable(),
                 TextColumn::make('amount')
                     ->label('Số tiền')
+                    ->alignCenter()
                     ->money('VND')
                     ->sortable(),
                 TextColumn::make('method')

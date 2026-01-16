@@ -53,7 +53,7 @@ class UserBankAccountResource extends Resource
         return [
             'index' => ListUserBankAccounts::route('/'),
             // 'create' => CreateUserBankAccount::route('/create'),
-            // 'edit' => EditUserBankAccount::route('/{record}/edit'),
+            'edit' => EditUserBankAccount::route('/{record}/edit'),
         ];
     }
 }
