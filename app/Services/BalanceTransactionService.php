@@ -34,14 +34,20 @@ class BalanceTransactionService
         ?string $description = null,
         ?array $metadata = null
     ): BalanceTransaction {
-        $balance = $user->balance;
+        if ($type === 'point_redeem') {
+            $balance_after = $user->point->points;
+            $held_balance_after = 0;
+        } else {
+            $balance_after = $user->balance->balance;
+            $held_balance_after = $user->balance->held_balance;
+        }
 
         return BalanceTransaction::create([
             'user_id' => $user->id,
             'type' => $type,
             'amount' => $amount,
-            'balance_after' => $balance->balance,
-            'held_balance_after' => $balance->held_balance,
+            'balance_after' => $balance_after,
+            'held_balance_after' => $held_balance_after,
             'source_id' => $source?->id,
             'source_type' => $source ? get_class($source) : null,
             'related_user_id' => $relatedUserId,

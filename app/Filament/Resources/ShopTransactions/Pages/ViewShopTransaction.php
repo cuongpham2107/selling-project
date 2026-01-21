@@ -193,7 +193,7 @@ class ViewShopTransaction extends ViewRecord
                             type: 'sale',
                             source: $record,
                             relatedUserId: $record->buyer_id,
-                            description: 'Thu tiền từ đơn hàng #'.$record->id,
+                            description: 'Cộng tiền cho người bán hàng #'.$record->id,
                             metadata: [
                                 'gross_amount' => $totalAmount,
                                 'fee' => $fee,
@@ -232,7 +232,7 @@ class ViewShopTransaction extends ViewRecord
                             BalanceTransactionService::record(
                                 user: $record->buyer,
                                 type: 'point_redeem',
-                                amount: 0,
+                                amount: $points,
                                 source: $record,
                                 relatedUserId: $record->seller_id,
                                 description: 'Nhận '.$points.' điểm từ đơn hàng #'.$record->id,
@@ -268,7 +268,7 @@ class ViewShopTransaction extends ViewRecord
                                     BalanceTransactionService::record(
                                         user: $referrer,
                                         type: 'point_redeem',
-                                        amount: 0,
+                                        amount: $points,
                                         source: $record,
                                         relatedUserId: $record->buyer_id,
                                         description: 'Thưởng giới thiệu: '.$points.' điểm (100%)',
@@ -296,7 +296,7 @@ class ViewShopTransaction extends ViewRecord
                                         BalanceTransactionService::record(
                                             user: $referrer,
                                             type: 'point_redeem',
-                                            amount: 0,
+                                            amount: $recurringPoints,
                                             source: $record,
                                             relatedUserId: $record->buyer_id,
                                             description: 'Thưởng giới thiệu: '.$recurringPoints.' điểm (10%)',

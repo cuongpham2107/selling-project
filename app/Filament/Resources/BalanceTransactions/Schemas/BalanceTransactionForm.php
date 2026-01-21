@@ -57,12 +57,12 @@ class BalanceTransactionForm
                                     ->prefix('VNĐ')
                                     ->helperText('Số dương = tiền vào, số âm = tiền ra'),
                                 TextInput::make('balance_after')
-                                    ->label('Số dư sau giao dịch')
+                                    ->label(fn ($record) => $record->type === 'point_redeem' ? 'Số điểm sau giao dịch' : 'Số dư sau giao dịch')
                                     ->required()
                                     ->numeric()
                                     ->prefix('VNĐ'),
                                 TextInput::make('held_balance_after')
-                                    ->label('Số dư giữ sau giao dịch')
+                                    ->label(fn ($record) => $record->type === 'point_redeem' ? 'Số điểm giữ sau giao dịch' : 'Số dư giữ sau giao dịch')
                                     ->required()
                                     ->numeric()
                                     ->default(0)

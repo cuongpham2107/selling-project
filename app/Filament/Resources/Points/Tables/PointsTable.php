@@ -67,7 +67,11 @@ class PointsTable
                     ->form([
                         \Filament\Forms\Components\Select::make('recipient_id')
                             ->label('Người nhận')
-                            ->options(\App\Models\User::where('id', '!=', auth()->id())->pluck('username', 'id'))
+                            ->options(fn () => \App\Models\User::query()
+                                ->where('id', '!=', auth()->id())
+                                ->pluck('username', 'id')
+                                ->toArray()
+                            )
                             ->required()
                             ->searchable(),
                         \Filament\Forms\Components\TextInput::make('amount')

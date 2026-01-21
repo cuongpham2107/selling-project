@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use Agencetwogether\HooksHelper\HooksHelperPlugin;
+use App\Filament\Auth\Pages\Login;
+use App\Filament\Auth\Pages\Register;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Enums\UserMenuPosition;
 use Filament\Http\Middleware\Authenticate;
@@ -22,8 +24,6 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Openplain\FilamentShadcnTheme\Color;
 use WatheqAlshowaiter\FilamentStickyTableHeader\StickyTableHeaderPlugin;
-use App\Filament\Auth\Pages\Login;
-use App\Filament\Auth\Pages\Register;
 
 class AdminPanelProvider extends PanelProvider
 {
