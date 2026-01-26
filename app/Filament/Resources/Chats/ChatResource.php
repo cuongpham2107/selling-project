@@ -24,6 +24,8 @@ class ChatResource extends Resource
 
     protected static ?string $pluralLabel = 'Phòng chat';
 
+    protected static ?string $modelLabel = 'Phòng chat';
+
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\Chats\Schemas\ChatForm::configure($schema);

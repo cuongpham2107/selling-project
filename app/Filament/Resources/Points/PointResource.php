@@ -24,6 +24,8 @@ class PointResource extends Resource
 
     protected static ?string $pluralLabel = 'Ví Point';
 
+    protected static ?string $modelLabel = 'Ví Point';
+
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\Points\Schemas\PointForm::configure($schema);

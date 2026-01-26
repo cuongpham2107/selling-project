@@ -26,7 +26,7 @@ class BalanceTransactionResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Tài chính';
 
-    protected static ?string $navigationLabel = 'Lịch sử giao dịch';
+    protected static ?string $pluralLabel = 'Lịch sử giao dịch';
 
     protected static ?string $modelLabel = 'Giao dịch tiền';
 

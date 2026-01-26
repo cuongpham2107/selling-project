@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('chat_id')->nullable()->constrained('chats')->onDelete('set null');
             $table->timestamp('end_time')->nullable(); // 3 ngày
             $table->timestamp('completed_at')->nullable();
-
+            $table->text('product_data')->nullable();
             $table->timestamps();
 
             $table->index('status');

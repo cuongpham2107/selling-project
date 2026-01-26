@@ -13,11 +13,13 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
+use App\Filament\Tables\BaseTable;
+
 class DepositsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BaseTable::configure($table)
             ->modifyQueryUsing(function (Builder $query): Builder {
                 return $query->orderByRaw("
                     CASE status
@@ -66,10 +68,7 @@ class DepositsTable
                         Status::Failed->value => 'danger',
                         default => 'gray',
                     }),
-                TextColumn::make('created_at')
-                    ->label('Ngày nạp')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                BaseTable::getCreatedAtColumn(),
             ])
             ->recordActions([
                 ApproveAction::make('approve')
@@ -85,7 +84,7 @@ class DepositsTable
             ])
             ->filters([
                 CustomDepositFilter::make('deposit_filter'),
-            ])
-            ->defaultPaginationPageOption(25);
+                BaseTable::getCreatedAtFilter(),
+            ]);
     }
 }

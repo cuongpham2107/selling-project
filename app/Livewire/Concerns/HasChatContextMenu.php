@@ -6,6 +6,7 @@ use App\Models\Chat;
 use App\Models\Transaction;
 use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -65,7 +66,7 @@ trait HasChatContextMenu
             ->label('Tạo Giao Dịch Trung Gian')
             ->modalHeading('Tạo Giao Dịch Trung Gian Mới')
             ->modalDescription(function () {
-                $user = User::find($this->tempUserId ?? $this->contextMenuUserId);
+                $user = User::query()->find($this->tempUserId ?? $this->contextMenuUserId);
 
                 return $user ? "Tạo giao dịch với người dùng: {$user->name}" : 'Tạo giao dịch mới';
             })
@@ -74,6 +75,13 @@ trait HasChatContextMenu
                 $this->hideContextMenu();
             })
             ->form([
+                Select::make('role')
+                    ->label('Vai Trò')
+                    ->options([
+                        'buyer' => 'Mua',
+                        'seller' => 'Bán',
+                    ])
+                    ->required(),
                 TextInput::make('amount')
                     ->label('Số Tiền')
                     ->required()
@@ -108,11 +116,19 @@ trait HasChatContextMenu
 
                 // Calculate fee
                 $baseFee = Transaction::calculateBaseFee($data['amount']);
-
+                // nếu role là buyer thì buyer_id là người dùng hiện tại, seller_id là người dùng khác
+                // nếu role là seller thì seller_id là người dùng hiện tại, buyer_id là người dùng khác
+                if ($data['role'] === 'buyer') {
+                    $buyerId = $currentUserId;
+                    $sellerId = $otherUserId;
+                } else {
+                    $buyerId = $otherUserId;
+                    $sellerId = $currentUserId;
+                }
                 // Create transaction
                 $transaction = Transaction::create([
-                    'buyer_id' => $currentUserId,
-                    'seller_id' => $otherUserId,
+                    'buyer_id' => $buyerId,
+                    'seller_id' => $sellerId,
                     'description' => $data['description'],
                     'amount' => $data['amount'],
                     'duration' => $data['duration'],

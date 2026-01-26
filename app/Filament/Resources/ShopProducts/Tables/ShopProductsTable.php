@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ShopProducts\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Grouping\Group;
@@ -36,6 +35,10 @@ class ShopProductsTable
                 TextColumn::make('price')
                     ->label('Giá')
                     ->money('VND')
+                    ->sortable(),
+                TextColumn::make('count_data')
+                    ->label('Số lượng')
+                    ->alignCenter()
                     ->sortable(),
                 TextColumn::make('status')
                     ->label('Trạng thái')
@@ -69,7 +72,6 @@ class ShopProductsTable
 
             ])
             ->actions([
-                ViewAction::make(),
                 EditAction::make(),
             ])
             ->bulkActions([

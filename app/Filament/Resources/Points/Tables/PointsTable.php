@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Points\Tables;
 
+use App\Services\BalanceTransactionService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -43,14 +44,18 @@ class PointsTable
                         $vndAmount = $pointsToRedeem * 500;
 
                         \Illuminate\Support\Facades\DB::transaction(function () use ($record, $pointsToRedeem, $vndAmount) {
-                            $record->decrement('points', $pointsToRedeem);
                             $record->user->balance->increment('balance', $vndAmount);
 
-                            \App\Models\PointTransaction::create([
-                                'user_id' => $record->user_id,
-                                'amount' => $pointsToRedeem,
-                                'type' => 'redeem',
-                            ]);
+                            // Update redeemed count
+                            $currentRedeemed = \App\Models\Setting::getValue('point_total_redeemed', 0);
+                            \App\Models\Setting::setValue('point_total_redeemed', $currentRedeemed + $pointsToRedeem);
+
+                            BalanceTransactionService::decrementPoints(
+                                user: $record->user,
+                                amount: $pointsToRedeem,
+                                type: 'redeem',
+                                description: 'Quy đổi '.$pointsToRedeem.' điểm thành '.number_format($vndAmount).' VNĐ'
+                            );
                         });
 
                         \Filament\Notifications\Notification::make()
@@ -97,27 +102,26 @@ class PointsTable
                         }
 
                         \Illuminate\Support\Facades\DB::transaction(function () use ($record, $recipientId, $amount, $totalDebit) {
+                            /** @var \App\Models\User $recipient */
+                            $recipient = \App\Models\User::query()->find($recipientId);
+
                             // Debit sender
-                            $record->decrement('points', $totalDebit);
+                            BalanceTransactionService::decrementPoints(
+                                user: $record->user,
+                                amount: $totalDebit,
+                                type: 'point_send',
+                                relatedUserId: $recipientId,
+                                description: 'Gửi '.$amount.' điểm cho '.$recipient->username.' (phí '.($totalDebit - $amount).')'
+                            );
 
                             // Credit recipient
-                            $recipientPoint = \App\Models\Point::firstOrCreate(['user_id' => $recipientId], ['points' => 0]);
-                            $recipientPoint->increment('points', $amount);
-
-                            // Records
-                            \App\Models\PointTransaction::create([
-                                'user_id' => $record->user_id,
-                                'amount' => $totalDebit,
-                                'type' => 'send',
-                                'recipient_id' => $recipientId,
-                            ]);
-
-                            \App\Models\PointTransaction::create([
-                                'user_id' => $recipientId,
-                                'amount' => $amount,
-                                'type' => 'receive',
-                                'sender_id' => $record->user_id,
-                            ]);
+                            BalanceTransactionService::incrementPoints(
+                                user: $recipient,
+                                amount: $amount,
+                                type: 'point_receive',
+                                relatedUserId: $record->user_id,
+                                description: 'Nhận '.$amount.' điểm từ '.$record->user->username,
+                            );
                         });
 
                         \Filament\Notifications\Notification::make()

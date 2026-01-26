@@ -33,4 +33,29 @@ class EditShopProduct extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $stock = $data['stock'] ?? [];
+
+        if (is_array($stock) && count($stock) > 0) {
+            $firstItem = reset($stock);
+
+            if (isset($firstItem['api_key'])) {
+                $data['type'] = 'api_key';
+            } elseif (isset($firstItem['username']) || isset($firstItem['password'])) {
+                $data['type'] = 'account';
+            }
+        } else {
+            $data['type'] = 'api_key';
+        }
+        // dd($data);
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        return $data;
+    }
 }

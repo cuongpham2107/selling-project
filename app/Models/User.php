@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+
 /**
  * Model properties
  *
@@ -22,10 +25,15 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int|null $product_id
  * @property \Illuminate\Support\Carbon|null $read_at
  */
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasRoles, Notifiable;
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true; // Simplified for this project
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -89,15 +97,6 @@ class User extends Authenticatable
     public function point(): HasOne
     {
         return $this->hasOne(Point::class);
-    }
-
-    /**
-     * Lấy tất cả giao dịch điểm của người dùng.
-     * Bao gồm: kiếm điểm (earn), đổi điểm (redeem), gửi điểm (send), nhận điểm (receive).
-     */
-    public function pointTransactions(): HasMany
-    {
-        return $this->hasMany(PointTransaction::class);
     }
 
     /**

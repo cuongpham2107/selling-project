@@ -42,6 +42,9 @@ class Register extends BaseAuth
         return TextInput::make('referral_code')
             ->label('Mã giới thiệu')
             ->afterLabel('Nhập mã giới thiệu của bạn (Nếu có)')
+            ->default(request()->query('ref'))
+            ->disabled(fn () => request()->has('ref'))
+            ->dehydrated()
             ->live()
             ->rules([
                 fn (): Closure => function (string $attribute, $value, Closure $fail) {
@@ -50,7 +53,7 @@ class Register extends BaseAuth
                         return;
                     }
 
-                    $check_exists = User::where('referral_code', $value)->exists();
+                    $check_exists = User::query()->where('referral_code', $value)->exists();
                     if (! $check_exists) {
                         $fail('Mã giới thiệu không hợp lệ.');
                     }

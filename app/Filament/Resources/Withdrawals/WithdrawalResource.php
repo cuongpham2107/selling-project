@@ -24,6 +24,8 @@ class WithdrawalResource extends Resource
 
     protected static ?string $pluralLabel = 'Lịch sử rút tiền';
 
+    protected static ?string $modelLabel = 'Lịch sử rút tiền';
+
     protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema

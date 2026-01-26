@@ -38,8 +38,10 @@ class BalanceTransaction extends Model
         'user_id',
         'type',
         'amount',
+        'currency',
         'balance_after',
         'held_balance_after',
+        'points_after',
         'source_id',
         'source_type',
         'related_user_id',
@@ -51,6 +53,7 @@ class BalanceTransaction extends Model
         'amount' => 'decimal:2',
         'balance_after' => 'decimal:2',
         'held_balance_after' => 'decimal:2',
+        'points_after' => 'decimal:2',
         'metadata' => 'array',
     ];
 
@@ -103,6 +106,10 @@ class BalanceTransaction extends Model
             'dispute_payout' => 'Thanh toán tranh chấp',
             'middleman_purchase' => 'Mua qua trung gian',
             'middleman_sale' => 'Bán qua trung gian',
+            'point_earn' => 'Kiếm điểm',
+            'point_send' => 'Gửi điểm',
+            'point_receive' => 'Nhận điểm',
+            'redeem' => 'Quy đổi',
             default => 'Khác',
         };
     }
@@ -112,9 +119,13 @@ class BalanceTransaction extends Model
      */
     public function getAmountFormattedAttribute(): string
     {
+        $isPoint = $this->currency === 'point' || str_contains($this->type, 'point');
         $sign = $this->amount >= 0 ? '+' : '';
+        $amount = abs((float) $this->amount);
+        $formatted = number_format($amount, $isPoint ? 2 : 0, ',', '.');
+        $suffix = $isPoint ? ' điểm' : ' vnđ';
 
-        return $sign.number_format((float) $this->amount, 0, ',', '.').' VNĐ';
+        return $sign.$formatted.$suffix;
     }
 
     /**

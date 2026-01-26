@@ -25,6 +25,8 @@ class BalanceResource extends Resource
 
     protected static ?string $pluralLabel = 'Số dư ví';
 
+    protected static ?string $modelLabel = 'Số dư ví';
+
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\Balances\Schemas\BalanceForm::configure($schema);

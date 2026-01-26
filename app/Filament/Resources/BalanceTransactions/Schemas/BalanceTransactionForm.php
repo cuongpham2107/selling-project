@@ -4,12 +4,14 @@ namespace App\Filament\Resources\BalanceTransactions\Schemas;
 
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\MorphToSelect;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\RawJs;
 
 class BalanceTransactionForm
 {
@@ -44,29 +46,55 @@ class BalanceTransactionForm
                                         'dispute_payout' => 'Thanh toán tranh chấp',
                                         'middleman_purchase' => 'Mua qua trung gian',
                                         'middleman_sale' => 'Bán qua trung gian',
+                                        'point_earn' => 'Kiếm điểm',
+                                        'point_send' => 'Gửi điểm',
+                                        'point_receive' => 'Nhận điểm',
+                                        'redeem' => 'Quy đổi',
                                     ])
                                     ->required(),
+                                Select::make('currency')
+                                    ->label('Tiền tệ')
+                                    ->options([
+                                        'vnd' => 'vnđ',
+                                        'point' => 'điểm',
+                                    ])
+                                    ->required()
+                                    ->default('vnd'),
                             ]),
 
-                        Grid::make(3)
+                        Grid::make(4)
                             ->schema([
                                 TextInput::make('amount')
-                                    ->label('Số tiền')
+                                    ->label(fn ($record) => $record?->currency === 'point' ? 'Số điểm' : 'Số tiền')
                                     ->required()
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
                                     ->numeric()
-                                    ->prefix('VNĐ')
-                                    ->helperText('Số dương = tiền vào, số âm = tiền ra'),
+                                    ->suffix(fn ($record) => $record?->currency === 'point' ? 'điểm' : 'vnđ')
+                                    ->helperText(fn ($record) => $record?->currency === 'point' ? 'Số dương = điểm vào, số âm = điểm ra' : 'Số dương = tiền vào, số âm = tiền ra'),
                                 TextInput::make('balance_after')
-                                    ->label(fn ($record) => $record->type === 'point_redeem' ? 'Số điểm sau giao dịch' : 'Số dư sau giao dịch')
+                                    ->label('Số tiền trong ví')
                                     ->required()
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
                                     ->numeric()
-                                    ->prefix('VNĐ'),
+                                    ->suffix('vnđ'),
                                 TextInput::make('held_balance_after')
-                                    ->label(fn ($record) => $record->type === 'point_redeem' ? 'Số điểm giữ sau giao dịch' : 'Số dư giữ sau giao dịch')
+                                    ->label('Số tiền đang bị tạm giữ')
                                     ->required()
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
                                     ->numeric()
                                     ->default(0)
-                                    ->prefix('VNĐ'),
+                                    ->suffix('vnđ'),
+                                TextInput::make('points_after')
+                                    ->label('Số dư điểm')
+                                    ->required()
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->suffix('điểm'),
                             ]),
 
                         Select::make('related_user_id')
@@ -103,13 +131,35 @@ class BalanceTransactionForm
                                     ->label('Giao dịch trung gian')
                                     ->titleAttribute('id')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "Giao dịch #{$record->id} [".number_format((float) $record->amount, 0, ',', '.').' VNĐ]'),
-                                MorphToSelect\Type::make(\App\Models\PointTransaction::class)
-                                    ->label('Giao dịch điểm')
-                                    ->titleAttribute('id')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "Điểm #{$record->id} [{$record->amount} điểm] - {$record->type}"),
                             ])
                             ->searchable()
                             ->preload()
+                            ->live()
+                            ->columnSpanFull(),
+
+                        Placeholder::make('source_link')
+                            ->label('Xem giao dịch')
+                            ->content(function ($record) {
+                                if (! $record || ! $record->source_type || ! $record->source_id) {
+                                    return '-';
+                                }
+
+                                $url = match ($record->source_type) {
+                                    'App\\Models\\Deposit' => route('filament.admin.resources.deposits.edit', $record->source_id),
+                                    'App\\Models\\Withdrawal' => route('filament.admin.resources.withdrawals.index'),
+                                    'App\\Models\\ShopTransaction' => route('filament.admin.resources.shop-transactions.view', $record->source_id),
+                                    'App\\Models\\Transaction' => route('filament.admin.resources.transactions.edit', $record->source_id),
+                                    default => null,
+                                };
+
+                                if (! $url) {
+                                    return '-';
+                                }
+
+                                return new \Illuminate\Support\HtmlString(
+                                    '<a href="'.$url.'" class="text-primary-600 hover:underline" target="_blank">Xem chi tiết giao dịch</a>'
+                                );
+                            })
                             ->columnSpanFull(),
                     ]),
 

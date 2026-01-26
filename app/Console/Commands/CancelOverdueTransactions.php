@@ -12,11 +12,12 @@ class CancelOverdueTransactions extends Command
      * @var string
      */
     protected $signature = 'app:cancel-overdue-transactions';
+
     protected $description = 'Cancel overdue transactions after 1 hour of grace period';
 
     public function handle()
     {
-        $transactions = \App\Models\Transaction::where('status', '!=', 'completed')
+        $transactions = \App\Models\Transaction::query()->where('status', '!=', 'completed')
             ->where('status', '!=', 'cancelled')
             ->where('status', '!=', 'disputed')
             ->where('end_time', '<=', now()->subHour())
@@ -26,17 +27,22 @@ class CancelOverdueTransactions extends Command
             \Illuminate\Support\Facades\DB::transaction(function () use ($transaction) {
                 $buyerBalance = $transaction->buyer->balance;
                 $totalAmount = $transaction->amount;
-                
+
                 // Refund money to buyer
                 // Releasing from held balance
                 if ($transaction->status !== 'pending') {
-                    $buyerBalance->decrement('held_balance', $totalAmount);
-                    $buyerBalance->increment('balance', $totalAmount);
+                    \App\Services\BalanceTransactionService::release(
+                        user: $transaction->buyer,
+                        amount: $totalAmount,
+                        type: 'release',
+                        source: $transaction,
+                        relatedUserId: $transaction->seller_id,
+                        description: 'Hoàn tiền giao dịch trung gian #'.$transaction->id.' (Giao dịch quá hạn)'
+                    );
                 }
 
-                $transaction->update([
-                    'status' => 'overdue',
-                ]);
+                $transaction->status = 'overdue';
+                $transaction->save();
             });
 
             $this->info("Cancelled overdue transaction ID: {$transaction->id}");

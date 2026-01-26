@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Withdrawals\Schemas;
 
 use App\Filament\Resources\Withdrawals\Enums\Method;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
@@ -20,13 +21,23 @@ class WithdrawalForm
                 ->description('Chi tiết về số tiền và phương thức nhận tiền.')
                 ->columnSpanFull()
                 ->schema([
+                    Placeholder::make('current_balance')
+                        ->label('Số dư khả dụng')
+                        ->content(function () {
+                            $balance = auth()->user()->balance?->balance ?? 0;
+
+                            return number_format((float) $balance, 0, ',', '.').' vnđ';
+                        })
+                        ->extraAttributes(['class' => 'text-lg font-bold text-success-600'])
+                        ->columnSpanFull(),
                     Grid::make(2)
                         ->schema([
                             TextInput::make('amount')
                                 ->label('Số tiền')
                                 ->numeric()
                                 ->prefix('VNĐ')
-                                ->required(),
+                                ->required()
+                                ->helperText('Nhập số tiền bạn muốn rút từ ví của mình.'),
                             Select::make('type')
                                 ->label('Phương thức')
                                 ->options(Method::class)

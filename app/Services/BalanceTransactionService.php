@@ -32,22 +32,21 @@ class BalanceTransactionService
         ?Model $source = null,
         ?int $relatedUserId = null,
         ?string $description = null,
-        ?array $metadata = null
+        ?array $metadata = null,
+        string $currency = 'vnd'
     ): BalanceTransaction {
-        if ($type === 'point_redeem') {
-            $balance_after = $user->point->points;
-            $held_balance_after = 0;
-        } else {
-            $balance_after = $user->balance->balance;
-            $held_balance_after = $user->balance->held_balance;
-        }
+        $balance_after = $user->balance->balance;
+        $held_balance_after = $user->balance->held_balance;
+        $points_after = $user->point->points ?? 0;
 
         return BalanceTransaction::create([
             'user_id' => $user->id,
             'type' => $type,
             'amount' => $amount,
+            'currency' => $currency,
             'balance_after' => $balance_after,
             'held_balance_after' => $held_balance_after,
+            'points_after' => $points_after,
             'source_id' => $source?->id,
             'source_type' => $source ? get_class($source) : null,
             'related_user_id' => $relatedUserId,
@@ -164,5 +163,59 @@ class BalanceTransactionService
         $user->balance->refresh();
 
         return self::record($user, $type, $amount, $source, $relatedUserId, $description, $metadata);
+    }
+
+    /**
+     * Increment user points and record transaction.
+     */
+    public static function incrementPoints(
+        User $user,
+        float $amount,
+        string $type,
+        ?Model $source = null,
+        ?int $relatedUserId = null,
+        ?string $description = null,
+        ?array $metadata = null
+    ): BalanceTransaction {
+        $user->point->increment('points', $amount);
+        $user->point->refresh();
+
+        return self::record(
+            user: $user,
+            type: $type,
+            amount: $amount,
+            source: $source,
+            relatedUserId: $relatedUserId,
+            description: $description,
+            metadata: $metadata,
+            currency: 'point'
+        );
+    }
+
+    /**
+     * Decrement user points and record transaction.
+     */
+    public static function decrementPoints(
+        User $user,
+        float $amount,
+        string $type,
+        ?Model $source = null,
+        ?int $relatedUserId = null,
+        ?string $description = null,
+        ?array $metadata = null
+    ): BalanceTransaction {
+        $user->point->decrement('points', $amount);
+        $user->point->refresh();
+
+        return self::record(
+            user: $user,
+            type: $type,
+            amount: -$amount,
+            source: $source,
+            relatedUserId: $relatedUserId,
+            description: $description,
+            metadata: $metadata,
+            currency: 'point'
+        );
     }
 }

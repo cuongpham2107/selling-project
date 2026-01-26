@@ -27,6 +27,8 @@ class ShopTransactionResource extends Resource
 
     protected static ?string $pluralLabel = 'Đơn hàng';
 
+    protected static ?string $modelLabel = 'Đơn hàng';
+
     public static function form(Schema $schema): Schema
     {
         return ShopTransactionForm::configure($schema);
@@ -70,7 +72,7 @@ class ShopTransactionResource extends Resource
             'index' => ListShopTransactions::route('/'),
             // 'create' => CreateShopTransaction::route('/create'),
             'view' => ViewShopTransaction::route('/{record}'),
-            // 'edit' => EditShopTransaction::route('/{record}/edit'),
+            'edit' => EditShopTransaction::route('/{record}/edit'),
         ];
     }
 

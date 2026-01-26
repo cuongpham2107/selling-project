@@ -27,6 +27,8 @@ class TransactionResource extends Resource
 
     protected static ?string $pluralLabel = 'Giao dịch trung gian';
 
+    protected static ?string $modelLabel = 'Giao dịch trung gian';
+
     public static function form(Schema $schema): Schema
     {
         return TransactionForm::configure($schema);
@@ -57,7 +59,7 @@ class TransactionResource extends Resource
             'index' => ListTransactions::route('/'),
             'create' => CreateTransaction::route('/create'),
             'view' => ViewTransaction::route('/{record}'),
-            'edit' => EditTransaction::route('/{record}/edit'),
+            // 'edit' => EditTransaction::route('/{record}/edit'),
         ];
     }
 }

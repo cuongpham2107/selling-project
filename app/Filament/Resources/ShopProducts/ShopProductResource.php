@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ShopProducts;
 use App\Filament\Resources\ShopProducts\Pages\CreateShopProduct;
 use App\Filament\Resources\ShopProducts\Pages\EditShopProduct;
 use App\Filament\Resources\ShopProducts\Pages\ListShopProducts;
-use App\Filament\Resources\ShopProducts\Pages\ViewShopProduct;
 use App\Filament\Resources\ShopProducts\Schemas\ShopProductForm;
 use App\Filament\Resources\ShopProducts\Tables\ShopProductsTable;
 use App\Models\ShopProduct;
@@ -28,6 +27,8 @@ class ShopProductResource extends Resource
     protected static ?string $navigationLabel = 'Sản phẩm';
 
     protected static ?string $pluralLabel = 'Sản phẩm';
+
+    protected static ?string $modelLabel = 'Sản phẩm';
 
     public static function form(Schema $schema): Schema
     {
@@ -62,7 +63,6 @@ class ShopProductResource extends Resource
         return [
             'index' => ListShopProducts::route('/'),
             'create' => CreateShopProduct::route('/create'),
-            'view' => ViewShopProduct::route('/{record}'),
             'edit' => EditShopProduct::route('/{record}/edit'),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Transactions\Tables;
 
+use App\Filament\Tables\BaseTable;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,7 +14,7 @@ class TransactionsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BaseTable::configure($table)
             ->columns([
                 TextColumn::make('buyer.username')
                     ->label('Người mua')
@@ -56,24 +57,20 @@ class TransactionsTable
                     ->label('Thời hạn')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                TextColumn::make('created_at')
-                    ->label('Ngày tạo')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
+                BaseTable::getCreatedAtColumn()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                BaseTable::getCreatedAtFilter(),
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
+                // EditAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ])
-            ->defaultPaginationPageOption(25);
+            ]);
     }
 }

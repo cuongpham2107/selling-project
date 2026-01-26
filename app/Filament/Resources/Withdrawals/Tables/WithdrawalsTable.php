@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Withdrawals\Tables;
 
+use App\Filament\Tables\BaseTable;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,7 +14,7 @@ class WithdrawalsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BaseTable::configure($table)
             ->columns([
                 TextColumn::make('user.username')
                     ->label('Người dùng')
@@ -40,10 +41,7 @@ class WithdrawalsTable
                         'failed' => 'danger',
                         default => 'gray',
                     }),
-                TextColumn::make('created_at')
-                    ->label('Ngày rút')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                BaseTable::getCreatedAtColumn(),
             ])
             ->recordActions([
                 ViewAction::make(),
@@ -54,6 +52,8 @@ class WithdrawalsTable
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultPaginationPageOption(25);
+            ->filters([
+                BaseTable::getCreatedAtFilter(),
+            ]);
     }
 }

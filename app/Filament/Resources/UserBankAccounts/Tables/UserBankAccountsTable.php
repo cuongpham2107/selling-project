@@ -2,11 +2,8 @@
 
 namespace App\Filament\Resources\UserBankAccounts\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Filament\Tables\BaseTable;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\Layout\View;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -15,7 +12,7 @@ class UserBankAccountsTable
 {
     public static function configure(Table $table): Table
     {
-        return $table
+        return BaseTable::configure($table)
             ->columns([
                 TextColumn::make('bank_name')
                     ->hidden(),
@@ -35,9 +32,8 @@ class UserBankAccountsTable
                     ->slideOver()
                     ->modal(),
             ])
-            ->defaultSort('is_default', 'desc')
             ->bulkActions([
             ])
-            ->defaultPaginationPageOption(25);
+            ->defaultSort('is_default', 'desc');
     }
 }

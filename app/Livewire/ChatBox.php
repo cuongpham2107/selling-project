@@ -36,7 +36,7 @@ class ChatBox extends Component implements HasActions, HasForms
 
     /**
      * Livewire Listeners
-     * 
+     *
      * Không dùng echo listener ở đây vì mỗi chat có channel riêng
      * Thay vào đó, sẽ dùng JavaScript để lắng nghe dynamic channels
      * (xem phần @script trong blade file)
@@ -59,30 +59,34 @@ class ChatBox extends Component implements HasActions, HasForms
 
     public function getChatsProperty()
     {
-        // 1. Get General Chat
-        $generalChat = Chat::where('type', 'general')->first();
+        $cacheKey = 'user_chats_'.Auth::id().'_'.$this->search;
 
-        // 2. Get Private Chats (Where user is participant)
-        // Exclude private_shop and private_transaction from chat list
-        $privateChats = Auth::user()->chats()
-            ->whereNotIn('type', ['private_shop', 'private_transaction'])
-            ->with(['participants', 'messages' => function ($query) {
-                $query->latest()->limit(1);
-            }])
-            ->latest('updated_at')
-            ->get();
+        return cache()->remember($cacheKey, 60, function () {
+            // 1. Get General Chat
+            $generalChat = Chat::where('type', 'general')->first();
 
-        // 3. Merge & Sort by last message time or update time
-        $allChats = collect([$generalChat])->merge($privateChats)->unique('id');
+            // 2. Get Private Chats (Where user is participant)
+            // Exclude private_shop and private_transaction from chat list
+            $privateChats = Auth::user()->chats()
+                ->whereNotIn('type', ['private_shop', 'private_transaction'])
+                ->with(['participants', 'messages' => function ($query) {
+                    $query->latest()->limit(1);
+                }])
+                ->latest('updated_at')
+                ->get();
 
-        // 4. Search Filter
-        if ($this->search) {
-            $allChats = $allChats->filter(function ($chat) {
-                return str_contains(strtolower($this->getChatName($chat)), strtolower($this->search));
-            });
-        }
+            // 3. Merge & Sort by last message time or update time
+            $allChats = collect([$generalChat])->merge($privateChats)->unique('id');
 
-        return $allChats;
+            // 4. Search Filter
+            if ($this->search) {
+                $allChats = $allChats->filter(function ($chat) {
+                    return str_contains(strtolower($this->getChatName($chat)), strtolower($this->search));
+                });
+            }
+
+            return $allChats;
+        });
     }
 
     public function getSelectedChatMessagesProperty()
@@ -99,7 +103,7 @@ class ChatBox extends Component implements HasActions, HasForms
 
         // Filter by message search if provided
         if ($this->messageSearch) {
-            $query->where('content', 'like', '%' . $this->messageSearch . '%');
+            $query->where('content', 'like', '%'.$this->messageSearch.'%');
         }
 
         return $query->get()
@@ -262,11 +266,11 @@ class ChatBox extends Component implements HasActions, HasForms
         // Add both users as participants
         $chat->participants()->attach([Auth::id(), $this->selectedUserId]);
 
-    // Select the new chat
-    $this->selectedChat = $chat->load(['participants', 'messages']);
-    $this->closeNewChatModal();
-    // Notify frontend with the new chat id so Alpine subscribes to the correct channel
-    $this->dispatch('chat-selected', chatId: $chat->id);
+        // Select the new chat
+        $this->selectedChat = $chat->load(['participants', 'messages']);
+        $this->closeNewChatModal();
+        // Notify frontend with the new chat id so Alpine subscribes to the correct channel
+        $this->dispatch('chat-selected', chatId: $chat->id);
     }
 
     public function render()

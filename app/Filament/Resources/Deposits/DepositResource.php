@@ -24,6 +24,8 @@ class DepositResource extends Resource
 
     protected static ?string $pluralLabel = 'Lịch sử nạp tiền';
 
+    protected static ?string $modelLabel = 'Lịch sử nạp tiền';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

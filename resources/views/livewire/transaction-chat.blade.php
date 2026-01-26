@@ -15,9 +15,18 @@
                 @endif
 
                 <div class="flex flex-col {{ $isMe ? 'items-end' : 'items-start' }} max-w-[75%]">
-                    <div class="px-4 py-2.5 text-[15px] leading-relaxed shadow-sm {{ $isMe ? 'bg-primary-600 text-white rounded-2xl rounded-tr-lg' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-lg' }}">
-                        {{ $message->content }}
-                    </div>
+                    @if($message->image_url)
+                        <div class="mb-1">
+                            <img src="{{ $message->image_url }}" class="rounded-xl max-w-full h-auto shadow-sm cursor-pointer hover:opacity-90 transition-opacity" 
+                                 onclick="window.open('{{ $message->image_url }}', '_blank')">
+                        </div>
+                    @endif
+
+                    @if($message->content)
+                        <div class="px-4 py-2.5 text-[15px] leading-relaxed shadow-sm {{ $isMe ? 'bg-primary-600 text-white rounded-2xl rounded-tr-lg' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-lg' }}">
+                            {{ $message->content }}
+                        </div>
+                    @endif
                     
                     @if($message->created_at)
                     <span class="text-[10px] text-gray-400 mt-1 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -36,8 +45,32 @@
         @endforelse
     </div>
 
+    <!-- Image Preview Area -->
+    @if($image)
+        <div class="p-2 px-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 flex items-center gap-3">
+            <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+                <img src="{{ $image->temporaryUrl() }}" class="w-full h-full object-cover">
+                <button wire:click="$set('image', null)" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg p-0.5 hover:bg-red-600">
+                    <x-heroicon-s-x-mark class="w-4 h-4" />
+                </button>
+            </div>
+            <div class="text-xs text-gray-500 italic">
+                Sẵn sàng gửi ảnh...
+            </div>
+        </div>
+    @endif
+
+    <!-- Error Messages -->
+    @error('image')
+        <div class="px-4 py-1 text-xs text-red-500 bg-red-50 dark:bg-red-900/20 italic">
+            {{ $message }}
+        </div>
+    @enderror
+
     <!-- Input Area -->
     <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <input type="file" id="chat-image-input" wire:model="image" class="hidden" accept="image/*">
+        
         <x-filament::input.wrapper>
             <x-filament::input
                 type="textarea"
@@ -47,18 +80,25 @@
                 :disabled="!$chatId"
             />
             <x-slot name="suffix">
-                <x-filament::icon-button
-                    icon="heroicon-s-paper-airplane"
-                    wire:click="sendMessage"
-                    :disabled="!$chatId"
-                    color="primary"
-                />
+                <div class="flex items-center gap-1">
+                    <div wire:loading wire:target="image" class="mr-2">
+                        <x-filament::loading-indicator class="w-5 h-5" />
+                    </div>
+                    <x-filament::icon-button
+                        icon="heroicon-s-paper-airplane"
+                        wire:click="sendMessage"
+                        :disabled="!$chatId"
+                        color="primary"
+                    />
+                </div>
             </x-slot>
             <x-slot name="prefix">
                 <x-filament::icon-button
                     icon="heroicon-s-paper-clip"
                     :disabled="!$chatId"
                     color="gray"
+                    onclick="document.getElementById('chat-image-input').click()"
+                    title="Đính kèm ảnh (Tối đa 1MB, 3 ảnh/ngày)"
                 />
             </x-slot>
         </x-filament::input.wrapper>

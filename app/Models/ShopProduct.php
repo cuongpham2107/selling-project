@@ -32,6 +32,7 @@ class ShopProduct extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'stock' => 'array',
     ];
 
     /**
@@ -40,9 +41,9 @@ class ShopProduct extends Model
      *
      * @var array<int, string>
      */
-    protected $hidden = [
-        'stock',
-    ];
+    // protected $hidden = [
+    //     'stock',
+    // ];
 
     public function seller(): BelongsTo
     {
@@ -57,5 +58,10 @@ class ShopProduct extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(ShopTransaction::class, 'product_id');
+    }
+
+    public function getCountDataAttribute(): int
+    {
+        return count($this->stock ?? []);
     }
 }

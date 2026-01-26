@@ -4,8 +4,6 @@ namespace App\Filament\Resources\Transactions\Pages;
 
 use App\Filament\Resources\Transactions\TransactionResource;
 use App\Models\Dispute;
-use App\Models\PointTier;
-use App\Models\PointTransaction;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\BalanceTransactionService;
@@ -65,12 +63,12 @@ class ViewTransaction extends ViewRecord
                             ]
                         );
 
-                        $record->update([
+                        $record->fill([
                             'status' => 'confirmed',
                             'fee' => $fee,
                             'confirmed_at' => now(),
                             'end_time' => now()->addHours($record->duration),
-                        ]);
+                        ])->save();
 
                         \Filament\Notifications\Notification::make()
                             ->title('Giao dịch đã xác nhận')
@@ -88,7 +86,7 @@ class ViewTransaction extends ViewRecord
                 ->visible(fn (Transaction $record) => $record->status === 'confirmed')
                 ->requiresConfirmation()
                 ->action(function (Transaction $record) {
-                    $record->update(['status' => 'seller_sent']);
+                    $record->fill(['status' => 'seller_sent'])->save();
 
                     \Filament\Notifications\Notification::make()
                         ->title('Trạng thái cập nhật')
@@ -135,60 +133,19 @@ class ViewTransaction extends ViewRecord
                         );
 
                         // Update transaction
-                        $record->update([
+                        $record->fill([
                             'status' => 'completed',
                             'completed_at' => now(),
-                        ]);
+                        ])->save();
 
                         // Điểm thưởng cho người mua
-                        $points = PointTier::calculatePoints((float) $record->amount);
-                        if ($points > 0) {
-                            $record->buyer->point()->increment('points', $points);
-
-                            PointTransaction::create([
-                                'user_id' => $record->buyer_id,
-                                'amount' => $points,
-                                'type' => 'earn',
-                                'related_id' => $record->id,
-                                'related_type' => Transaction::class,
-                            ]);
-
-                            // Phần thưởng giới thiệu (khớp 100% cho giao dịch đầu tiên)
-                            $referrer = $record->buyer->referredBy;
-                            if ($referrer) {
-                                // Kiểm tra xem đây có phải là giao dịch hoàn thành đầu tiên không
-                                $previousCount = Transaction::where('buyer_id', $record->buyer_id)
-                                    ->where('status', 'completed')
-                                    ->where('id', '!=', $record->id)
-                                    ->count();
-
-                                if ($previousCount === 0) {
-                                    $referrer->point()->increment('points', $points);
-                                    PointTransaction::create([
-                                        'user_id' => $referrer->id,
-                                        'amount' => $points,
-                                        'type' => 'earn',
-                                        'related_id' => $record->id,
-                                        'related_type' => Transaction::class,
-                                        'recipient_id' => $record->buyer_id, // Who they got it from
-                                    ]);
-                                } else {
-                                    // Phần thưởng giới thiệu định kỳ: 10% điểm
-                                    $recurringPoints = floor($points * 0.1);
-                                    if ($recurringPoints > 0) {
-                                        $referrer->point()->increment('points', $recurringPoints);
-                                        PointTransaction::create([
-                                            'user_id' => $referrer->id,
-                                            'amount' => $recurringPoints,
-                                            'type' => 'earn',
-                                            'related_id' => $record->id,
-                                            'related_type' => Transaction::class,
-                                            'recipient_id' => $record->buyer_id,
-                                        ]);
-                                    }
-                                }
-                            }
-                        }
+                        // Logic thưởng điểm cho người mua và người giới thiệu
+                        \App\Services\PointService::distributePointsForTransaction(
+                            buyer: $record->buyer,
+                            amount: (float) $record->amount,
+                            source: $record,
+                            sellerId: $record->seller_id
+                        );
 
                         \Filament\Notifications\Notification::make()
                             ->title('Giao dịch hoàn tất')
@@ -227,10 +184,10 @@ class ViewTransaction extends ViewRecord
                         ]);
 
                         // Cập nhật trạng thái transaction
-                        $record->update(['status' => 'disputed']);
+                        $record->fill(['status' => 'disputed'])->save();
+
                         // lấy ra tài khoản có quyền là super_admin và support_admin
                         $admins = User::role(['super_admin', 'support_admin'])->get();
-                        dd($admins);
                         \Filament\Notifications\Notification::make()
                             ->title('Đã tạo khiếu nại')
                             ->body('Khiếu nại của bạn đã được ghi nhận. Quản trị viên sẽ xem xét và liên hệ trong thời gian sớm nhất.')

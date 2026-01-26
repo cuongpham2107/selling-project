@@ -23,6 +23,12 @@
                     Có sẵn
                  </span>
             </div>
+            <!-- Count Stock -->
+            <div class="absolute top-1.5 right-1.5">
+                <span class="inline-flex items-center rounded-md bg-success-500/10 px-1.5 py-0.5 text-[8px] font-bold text-blue-500 backdrop-blur-sm ring-1 ring-blue-500/20 uppercase tracking-wider">
+                    {{ $record->count_data }}
+                </span>
+            </div>
 
             <!-- Category Badges -->
             <div class="absolute bottom-1.5 left-1.5 flex flex-wrap gap-1">

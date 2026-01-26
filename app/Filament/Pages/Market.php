@@ -56,12 +56,13 @@ class Market extends Page implements HasActions, HasTable
                 ShopProduct::query()
                     ->with(['seller', 'categories'])
                     ->where('status', 'active')
+                    ->whereJsonLength('stock', '>', 0)
                     ->when($this->selectedCategoryId, function ($query) {
                         $query->whereHas('categories', function ($q) {
                             $q->where('shop_categories.id', $this->selectedCategoryId);
                         });
                     })
-                    // Explicitly select only safe columns, excluding 'stock'
+                    // Explicitly select only safe columns, loading 'stock' for the accessor but keeping it hidden from JSON serialization
                     ->select([
                         'id',
                         'user_id',
@@ -69,6 +70,7 @@ class Market extends Page implements HasActions, HasTable
                         'description',
                         'image_url',
                         'price',
+                        'stock',
                         'status',
                         'created_at',
                         'updated_at',

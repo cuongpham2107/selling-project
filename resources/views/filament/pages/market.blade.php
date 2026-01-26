@@ -4,6 +4,7 @@
             ->withCount([
                 'products' => function ($query) {
                     $query->where('status', 'active');
+                    $query->whereJsonLength('stock', '>', 0);
                 }
             ])
             ->get();
@@ -19,7 +20,7 @@
             Tất cả
             
             <x-slot name="badge">
-                {{ \App\Models\ShopProduct::query()->where('status', 'active')->count() }}
+                {{ \App\Models\ShopProduct::query()->where('status', 'active')->whereJsonLength('stock', '>', 0)->count() }}
             </x-slot>
         </x-filament::tabs.item>
 

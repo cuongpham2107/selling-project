@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 /**
  * Model properties
  *
@@ -23,7 +24,7 @@ class PointTier extends Model
      */
     public static function calculatePoints(float $amount): int
     {
-        $tier = self::where('min_amount', '<=', $amount)
+        $tier = self::query()->where('min_amount', '<=', $amount)
             ->where(function ($query) use ($amount) {
                 $query->where('max_amount', '>=', $amount)
                     ->orWhereNull('max_amount');

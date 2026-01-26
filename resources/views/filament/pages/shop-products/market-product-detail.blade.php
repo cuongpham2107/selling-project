@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     <div class="space-y-6">
         {{-- Product Image and Basic Info --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             {{-- Image --}}
             <div class="md:col-span-1">
                 @if($record->image_url)
@@ -99,7 +99,7 @@
                 </div>
 
                 {{-- Action Buttons --}}
-                <div class="flex gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <x-filament::button
                         tag="a"
                         :href="route('filament.admin.pages.market')"
@@ -110,7 +110,7 @@
                     </x-filament::button>
                     
                     @if($record->status === 'active')
-                        {{-- Add Buy button here if needed --}}
+                        {{ $this->buy_product }}
                     @endif
                 </div>
             </div>

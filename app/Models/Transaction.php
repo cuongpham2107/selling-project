@@ -31,8 +31,17 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'buyer_id', 'seller_id', 'description', 'amount', 'duration', 'fee',
-        'status', 'chat_id', 'confirmed_at', 'end_time', 'completed_at',
+        'buyer_id',
+        'seller_id',
+        'description',
+        'amount',
+        'duration',
+        'fee',
+        'status',
+        'chat_id',
+        'confirmed_at',
+        'end_time',
+        'completed_at',
     ];
 
     protected $casts = [
@@ -66,7 +75,7 @@ class Transaction extends Model
     // Business Logic Helpers
     public static function calculateBaseFee($amount)
     {
-        $tier = FeeTier::where('type', 'middle')
+        $tier = FeeTier::query()->where('type', 'middle')
             ->where('min_amount', '<=', $amount)
             ->where(function ($query) use ($amount) {
                 $query->where('max_amount', '>=', $amount)
@@ -96,7 +105,7 @@ class Transaction extends Model
 
     public static function calculatePoints($amount)
     {
-        $tier = PointTier::where('min_amount', '<=', $amount)
+        $tier = PointTier::query()->where('min_amount', '<=', $amount)
             ->where(function ($query) use ($amount) {
                 $query->where('max_amount', '>=', $amount)
                     ->orWhereNull('max_amount');

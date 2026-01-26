@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property \Illuminate\Support\Carbon|null $chat_id
  * @property \Illuminate\Support\Carbon|null $end_time
  * @property \Illuminate\Support\Carbon|null $completed_at
+ * @property array|null $product_data
  */
 class ShopTransaction extends Model
 {
@@ -28,7 +29,7 @@ class ShopTransaction extends Model
 
     protected $fillable = [
         'buyer_id', 'seller_id', 'product_id', 'amount', 'fee',
-        'status', 'chat_id', 'end_time', 'completed_at',
+        'status', 'chat_id', 'end_time', 'completed_at', 'product_data',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class ShopTransaction extends Model
         'end_time' => 'datetime',
         'completed_at' => 'datetime',
         'status' => Status::class,
+        'product_data' => 'array',
     ];
 
     protected $appends = [

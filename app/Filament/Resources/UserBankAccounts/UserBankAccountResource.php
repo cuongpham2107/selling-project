@@ -25,6 +25,8 @@ class UserBankAccountResource extends Resource
 
     protected static ?string $modelLabel = 'Tài khoản ngân hàng';
 
+    protected static ?string $pluralLabel = 'Tài khoản ngân hàng';
+
     protected static ?string $pluralModelLabel = 'Tài khoản ngân hàng';
 
     protected static string|UnitEnum|null $navigationGroup = 'Quản lý tài khoản';

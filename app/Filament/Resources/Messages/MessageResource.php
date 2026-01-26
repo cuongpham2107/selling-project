@@ -24,6 +24,8 @@ class MessageResource extends Resource
 
     protected static ?string $pluralLabel = 'Tin nhắn';
 
+    protected static ?string $modelLabel = 'Tin nhắn';
+
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\Messages\Schemas\MessageForm::configure($schema);

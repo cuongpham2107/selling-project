@@ -24,6 +24,8 @@ class DisputeResource extends Resource
 
     protected static ?string $pluralLabel = 'Tranh chấp';
 
+    protected static ?string $modelLabel = 'Tranh chấp';
+
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\Disputes\Schemas\DisputeForm::configure($schema);

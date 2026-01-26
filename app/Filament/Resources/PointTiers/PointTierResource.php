@@ -24,6 +24,8 @@ class PointTierResource extends Resource
 
     protected static ?string $pluralLabel = 'Bảng thưởng Point';
 
+    protected static ?string $modelLabel = 'Bảng thưởng Point';
+
     public static function form(Schema $schema): Schema
     {
         return \App\Filament\Resources\PointTiers\Schemas\PointTierForm::configure($schema);
