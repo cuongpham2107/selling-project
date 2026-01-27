@@ -47,11 +47,53 @@ class ShopSeeder extends Seeder
 
         // 2. Create Products
         $products = [
-            ['name' => 'Tài khoản Netflix 1 tháng', 'price' => 50000, 'stock' => "user1:pass1\nuser2:pass2", 'cats' => ['Dịch vụ Giải trí']],
-            ['name' => 'Tài khoản Spotify Premium', 'price' => 30000, 'stock' => "code123\ncode456", 'cats' => ['Dịch vụ Giải trí']],
-            ['name' => 'Key Windows 11 Pro', 'price' => 150000, 'stock' => 'XXXXX-XXXXX-XXXXX-XXXXX', 'cats' => ['Phần mềm / Key']],
-            ['name' => 'Code Game Steam 10$', 'price' => 220000, 'stock' => 'STEAM-ABC-DEF', 'cats' => ['Tài khoản Game']],
-            ['name' => 'Tài khoản Canva Pro vĩnh viễn', 'price' => 100000, 'stock' => "invite-link-1\ninvite-link-2", 'cats' => ['Công cụ Design', 'Phần mềm / Key']],
+            [
+                'name' => 'Tài khoản Netflix 1 tháng', 
+                'price' => 50000, 
+                'type' => 'account',
+                'stock' => [
+                    ['username' => 'user1', 'password' => 'pass1'],
+                    ['username' => 'user2', 'password' => 'pass2'],
+                ], 
+                'cats' => ['Dịch vụ Giải trí']
+            ],
+            [
+                'name' => 'Tài khoản Spotify Premium', 
+                'price' => 30000, 
+                'type' => 'account',
+                'stock' => [
+                    ['username' => 'music_fan_1', 'password' => 'spotify123'],
+                ], 
+                'cats' => ['Dịch vụ Giải trí']
+            ],
+            [
+                'name' => 'Key Windows 11 Pro', 
+                'price' => 150000, 
+                'type' => 'api_key',
+                'stock' => [
+                    ['api_key' => 'W269N-WFGWX-YVC9B-4J6C9-T83GX'],
+                ], 
+                'cats' => ['Phần mềm / Key']
+            ],
+            [
+                'name' => 'Code Game Steam 10$', 
+                'price' => 220000, 
+                'type' => 'api_key',
+                'stock' => [
+                    ['api_key' => 'STEAM-999-ABC-XYZ'],
+                ], 
+                'cats' => ['Tài khoản Game']
+            ],
+            [
+                'name' => 'Tài khoản Canva Pro vĩnh viễn', 
+                'price' => 100000, 
+                'type' => 'api_key',
+                'stock' => [
+                    ['api_key' => 'https://canva.com/invite/pro1'],
+                    ['api_key' => 'https://canva.com/invite/pro2'],
+                ], 
+                'cats' => ['Công cụ Design', 'Phần mềm / Key']
+            ],
         ];
 
         foreach ($products as $p) {
@@ -61,6 +103,7 @@ class ShopSeeder extends Seeder
                     'user_id' => $sellers->random()->id,
                     'description' => 'Mô tả chi tiết cho sản phẩm kỹ thuật số '.$p['name'].'. Giao hàng tự động 24/7.',
                     'price' => $p['price'],
+                    'type' => $p['type'],
                     'stock' => $p['stock'],
                     'status' => 'active',
                 ]

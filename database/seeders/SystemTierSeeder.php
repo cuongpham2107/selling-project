@@ -10,28 +10,25 @@ class SystemTierSeeder extends Seeder
 {
     public function run(): void
     {
-        FeeTier::truncate();
-        PointTier::truncate();
+        FeeTier::query()->delete();
+        PointTier::query()->delete();
 
         // Fee Tiers (Middleman transactions)
         $feeTiers = [
-            ['min_amount' => 0, 'max_amount' => 99999, 'fee' => 4000, 'type' => 'middle'],
-            ['min_amount' => 100000, 'max_amount' => 199999, 'fee' => 6000, 'type' => 'middle'],
-            ['min_amount' => 200000, 'max_amount' => 999999, 'fee' => 10000, 'type' => 'middle'],
-            ['min_amount' => 1000000, 'max_amount' => 1999999, 'fee' => 16000, 'type' => 'middle'],
-            ['min_amount' => 2000000, 'max_amount' => 4999999, 'fee' => 36000, 'type' => 'middle'],
-            ['min_amount' => 5000000, 'max_amount' => 9999999, 'fee' => 66000, 'type' => 'middle'],
-            ['min_amount' => 10000000, 'max_amount' => 29999999, 'fee' => 150000, 'type' => 'middle'],
-            ['min_amount' => 30000000, 'max_amount' => null, 'fee' => 300000, 'type' => 'middle'],
+            ['min_amount' => 0, 'max_amount' => 99999, 'fee' => 4000],
+            ['min_amount' => 100000, 'max_amount' => 199999, 'fee' => 6000],
+            ['min_amount' => 200000, 'max_amount' => 999999, 'fee' => 10000],
+            ['min_amount' => 1000000, 'max_amount' => 1999999, 'fee' => 16000],
+            ['min_amount' => 2000000, 'max_amount' => 4999999, 'fee' => 36000],
+            ['min_amount' => 5000000, 'max_amount' => 9999999, 'fee' => 66000],
+            ['min_amount' => 10000000, 'max_amount' => 29999999, 'fee' => 150000],
+            ['min_amount' => 30000000, 'max_amount' => null, 'fee' => 300000],
             // Shop transactions fee is fixed 1% (represented as 1 in this context, logic will handle decimal)
-            ['min_amount' => 0, 'max_amount' => null, 'fee' => 1, 'type' => 'shop'],
+            ['min_amount' => null, 'max_amount' => null, 'fee' => 1],
         ];
 
         foreach ($feeTiers as $tier) {
-            FeeTier::updateOrCreate(
-                ['min_amount' => $tier['min_amount'], 'max_amount' => $tier['max_amount'], 'type' => $tier['type']],
-                $tier
-            );
+            FeeTier::create($tier);
         }
 
         // Point Tiers
@@ -47,10 +44,7 @@ class SystemTierSeeder extends Seeder
         ];
 
         foreach ($pointTiers as $tier) {
-            PointTier::updateOrCreate(
-                ['min_amount' => $tier['min_amount'], 'max_amount' => $tier['max_amount']],
-                $tier
-            );
+            PointTier::create($tier);
         }
     }
 }

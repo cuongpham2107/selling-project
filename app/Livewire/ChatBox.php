@@ -5,11 +5,13 @@ namespace App\Livewire;
 use App\Livewire\Concerns\HasChatContextMenu;
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\ShopProduct;
 use App\Models\User;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -33,6 +35,8 @@ class ChatBox extends Component implements HasActions, HasForms
     public $selectedUserId = null;
 
     public $userSearch = '';
+
+    public $selectedProductId = null;
 
     /**
      * Livewire Listeners
@@ -187,10 +191,20 @@ class ChatBox extends Component implements HasActions, HasForms
     public function sendMessage(): void
     {
         $this->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'required_without:selectedProductId|string|max:1000',
         ]);
 
         if (! $this->selectedChat) {
+            return;
+        }
+
+        if (! Message::canSendMessage(Auth::user(), $this->selectedChat)) {
+            Notification::make()
+                ->title('Giới hạn tin nhắn')
+                ->body('Bạn đã đạt giới hạn gửi tin (1 tin/giờ, 3 tin/ngày) cho Chat Tổng.')
+                ->warning()
+                ->send();
+
             return;
         }
 
@@ -198,10 +212,37 @@ class ChatBox extends Component implements HasActions, HasForms
             'chat_id' => $this->selectedChat->id,
             'sender_id' => Auth::id(),
             'content' => $this->content,
+            'product_id' => $this->selectedProductId,
         ]);
 
-        $this->reset('content');
+        $this->reset(['content', 'selectedProductId']);
         $this->dispatch('message-sent');
+    }
+
+    public function deleteMessage($messageId): void
+    {
+        if (! Auth::user()->hasRole('super_admin')) {
+            return;
+        }
+
+        $message = Message::find($messageId);
+        if ($message) {
+            $message->update([
+                'content' => null,
+                'deleted_by_id' => Auth::id(),
+                'deleted_at' => now(),
+            ]);
+
+            $this->dispatch('message-deleted');
+        }
+    }
+
+    public function getMyProductsProperty(): Collection
+    {
+        return ShopProduct::where('user_id', Auth::id())
+            ->where('status', 'active')
+            ->latest()
+            ->get();
     }
 
     public function openNewChatModal(): void

@@ -249,9 +249,52 @@
                                         ? 'bg-gray-900 dark:bg-gray-800 text-white rounded-br-none' 
                                         : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none' 
                                 }}">
-                                    {{ $message->content }}
+                                    @if($message->isDeleted())
+                                        <div class="italic opacity-60 flex flex-col gap-1">
+                                            <span>Tin nhắn không hợp lệ đã bị xóa</span>
+                                            <span class="text-[10px]">
+                                                Bởi: {{ $message->deletedBy->name ?? 'Admin' }} | {{ $message->deleted_at->format('H:i d/m') }}
+                                            </span>
+                                        </div>
+                                    @else
+                                        @if($message->product)
+                                            <div class="mb-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex items-center gap-2">
+                                                @if($message->product->image_url)
+                                                    <img src="{{ $message->product->image_url }}" class="w-10 h-10 rounded object-cover">
+                                                @else
+                                                    <div class="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-gray-400">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                                                        </svg>
+                                                    </div>
+                                                @endif
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="font-bold truncate text-[11px] md:text-xs text-primary-500">{{ $message->product->name }}</p>
+                                                    <p class="text-primary-500 font-semibold text-[10px] md:text-xs">{{ number_format($message->product->price, 0, ',', '.') }} đ</p>
+                                                </div>
+                                                <a href="/market-product-detail?record={{ $message->product->id }}" target="_blank" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-500 rounded text-gray-500 dark:text-gray-300">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        @endif
+                                        <div class="whitespace-pre-wrap">{{ $message->content }}</div>
+                                    @endif
                                 </div>
                                 <div class="flex items-center gap-1 mt-1 px-1">
+                                    @if(auth()->user()->hasRole('super_admin') && !$message->isDeleted())
+                                        <button 
+                                            wire:click="deleteMessage({{ $message->id }})"
+                                            wire:confirm="Bạn có chắc chắn muốn xóa tin nhắn này không?"
+                                            class="text-[10px] text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
+                                            title="Xóa tin nhắn"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                            </svg>
+                                        </button>
+                                    @endif
                                     <span class="text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {{ $message->created_at->format('H:i') }}
                                     </span>
@@ -287,12 +330,73 @@
 
             <!-- Input Area -->
             <div class="p-2 md:p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                <!-- Product Selector UI -->
+                @if($selectedProductId)
+                    @php $attachedProduct = $this->myProducts->firstWhere('id', $selectedProductId); @endphp
+                    @if($attachedProduct)
+                        <div class="mb-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-2 max-w-sm">
+                            <span class="text-xs font-semibold text-gray-500 shrink-0">Đính kèm:</span>
+                            <span class="text-xs font-bold truncate flex-1">{{ $attachedProduct->name }}</span>
+                            <button wire:click="$set('selectedProductId', null)" class="text-gray-400 hover:text-red-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    @endif
+                @endif
+
                 <form wire:submit="sendMessage" class="relative flex items-center gap-1 md:gap-2">
+                    <!-- Product Attachment Button -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button 
+                            @click="open = !open"
+                            type="button" 
+                            class="p-1.5 md:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            title="Đính kèm sản phẩm"
+                        >
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 md:w-6 md:h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.651V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+                            </svg>
+                        </button>
+
+                        <div 
+                            x-show="open" 
+                            @click.away="open = false"
+                            class="absolute bottom-full mb-2 left-0 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-2 w-64 max-h-60 overflow-y-auto"
+                            style="display: none;"
+                        >
+                            <h4 class="text-[10px] font-bold uppercase text-gray-500 mb-2 px-2">Sản phẩm của bạn</h4>
+                            @forelse($this->myProducts as $product)
+                                <button 
+                                    @click="open = false"
+                                    type="button"
+                                    wire:click="$set('selectedProductId', {{ $product->id }})"
+                                    class="w-full text-left p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md flex items-center gap-2 group"
+                                >
+                                    <div class="w-8 h-8 bg-gray-100 rounded flex-shrink-0">
+                                        @if($product->image_url)
+                                            <img src="{{ $product->image_url }}" class="w-full h-full object-cover rounded">
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs text-gray-900 dark:text-gray-100 font-medium truncate">{{ $product->name }}</p>
+                                        <p class="text-[10px] text-primary-500">{{ number_format($product->price, 0, ',', '.') }} đ</p>
+                                    </div>
+                                </button>
+                            @empty
+                                <p class="text-[10px] text-gray-400 p-2 italic">Bạn chưa có sản phẩm nào.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    @if($selectedChat->type !== 'general')
                     <button type="button" class="p-1.5 md:p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 md:w-6 md:h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                         </svg>
                     </button>
+                    @endif
                     <input 
                         type="text" 
                         wire:model="content" 

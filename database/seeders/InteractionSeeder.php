@@ -7,7 +7,7 @@ use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Transaction;
 use App\Models\Dispute;
-use App\Models\PointTransaction;
+use App\Models\BalanceTransaction;
 use App\Models\Deposit;
 use App\Models\Withdrawal;
 use Illuminate\Database\Seeder;
@@ -69,19 +69,27 @@ class InteractionSeeder extends Seeder
             }
         }
 
-        // 3. Create Point Transactions
+        // 3. Create Point Transactions (using BalanceTransaction)
         foreach ($regularUsers as $user) {
-            if (!PointTransaction::where('user_id', $user->id)->exists()) {
-                PointTransaction::create([
+            if (!BalanceTransaction::where('user_id', $user->id)->where('type', 'point_earn')->exists()) {
+                BalanceTransaction::create([
                     'user_id' => $user->id,
                     'amount' => rand(10, 100),
-                    'type' => 'earn',
+                    'type' => 'point_earn',
+                    'currency' => 'point',
+                    'balance_after' => 0,
+                    'held_balance_after' => 0,
+                    'points_after' => 100,
                 ]);
 
-                PointTransaction::create([
+                BalanceTransaction::create([
                     'user_id' => $user->id,
-                    'amount' => rand(5, 20),
-                    'type' => 'redeem',
+                    'amount' => -rand(5, 20),
+                    'type' => 'point_redeem',
+                    'currency' => 'point',
+                    'balance_after' => 0,
+                    'held_balance_after' => 0,
+                    'points_after' => 80,
                 ]);
             }
         }

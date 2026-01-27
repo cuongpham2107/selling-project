@@ -42,10 +42,10 @@ class RoleUserSeeder extends Seeder
 
         foreach ($accounts as $acc) {
             $user = User::updateOrCreate(
-                ['username' => $acc['username']],
+                ['email' => $acc['email']],
                 [
                     'name' => $acc['name'],
-                    'email' => $acc['email'],
+                    'username' => $acc['username'],
                     'password' => '12345678',
                     'phone' => $acc['phone'],
                 ]

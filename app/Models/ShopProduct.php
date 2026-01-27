@@ -27,7 +27,7 @@ class ShopProduct extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'name', 'description', 'image_url', 'price', 'stock', 'status',
+        'user_id', 'name', 'description', 'image_url', 'price', 'stock', 'status', 'type',
     ];
 
     protected $casts = [

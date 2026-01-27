@@ -21,11 +21,12 @@ class Message extends Model
     use HasFactory;
 
     protected $fillable = [
-        'chat_id', 'sender_id', 'content', 'image_url', 'product_id', 'read_at',
+        'chat_id', 'sender_id', 'content', 'image_url', 'product_id', 'read_at', 'deleted_by_id', 'deleted_at',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     public function chat(): BelongsTo
@@ -41,6 +42,16 @@ class Message extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(ShopProduct::class, 'product_id');
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by_id');
+    }
+
+    public function isDeleted(): bool
+    {
+        return ! is_null($this->deleted_at);
     }
 
     // Scopes
@@ -70,6 +81,10 @@ class Message extends Model
     // Chat Constraints Logic
     public static function canSendMessage($user, $chat)
     {
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
         if ($chat->type === 'general') {
             // Check hour limit: 1 tin/giờ
             $hourCount = self::where('sender_id', $user->id)
@@ -95,6 +110,10 @@ class Message extends Model
 
     public static function canSendImage($user, $chat)
     {
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
         if (in_array($chat->type, ['private_middle', 'private_shop'])) {
             // Giới hạn: 3 ảnh/người/ngày/giao dịch.
             $imageCount = self::where('sender_id', $user->id)

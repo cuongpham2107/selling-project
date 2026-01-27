@@ -21,7 +21,10 @@ class MessageObserver
      */
     public function updated(Message $message): void
     {
-        //
+        // Nếu tin nhắn bị xóa (deleted_at thay đổi), dispatch event để refresh UI cho các user khác
+        if ($message->wasChanged('deleted_at')) {
+            MessageCreatedEvent::dispatch($message);
+        }
     }
 
     /**
