@@ -126,6 +126,13 @@ class ChatBox extends Component implements HasActions, HasForms
         $this->dispatch('chat-selected', chatId: $chatId);
     }
 
+    public function deselectChat()
+    {
+        $this->selectedChat = null;
+        // Also reset any chat-specific state if needed
+        $this->reset(['selectedProductId', 'content', 'messageSearch']);
+    }
+
     protected function markMessagesAsRead(): void
     {
         if (! $this->selectedChat) {
